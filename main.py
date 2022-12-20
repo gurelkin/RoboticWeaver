@@ -25,9 +25,10 @@ if __name__ == '__main__':
     #     canvas[index] = 1-canvas[index]
 
     mona = pre.read_image("images/MonaLisa.jpeg")
-    loom = Loom(mona, 100)
-    loom.weave()
+    uri = pre.read_image("images/uri.jpg")
+    IMG = mona
+    loom = Loom(IMG, 200)
+    loom.weave(4000, intensity=50)
 
     plt.imshow(loom.canvas, cmap='gray')
     plt.show()
-
