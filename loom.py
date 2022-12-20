@@ -1,5 +1,5 @@
 import numpy as np
-from skimage.draw import line_aa
+from skimage.draw import line, line_aa
 
 
 def get_line(nail1: tuple[int, int], nail2: tuple[int, int]) -> dict[tuple[int, int], float]:
@@ -26,6 +26,7 @@ class Strand(object):
 
 def choose_nails_locations(shape: tuple, k: int) -> list[tuple[int, int]]:
     """
+    sets all the nails around the image
     :param shape: Shape of the image
     :param k: Number of nails to be placed
     :return: The indices of the nails' locations on the image
@@ -67,7 +68,7 @@ def find_darkest_line(image: np.array(list[list[float]]), possible_strands: list
     """
     :param image: The image to be scanned
     :param possible_strands: A list of all the lines in the image to check
-    :return: The strand with the smallest maximal value in its cell
+    :return: The strand with the smallest mean value in its pixels
     """
     mean_values = [np.mean([image[index] * (1 - value) for index, value in strand.line.items()])
                    for strand in possible_strands]
