@@ -1,5 +1,9 @@
 import numpy as np
 from skimage.draw import line
+from skimage.transform import rescale
+from skimage.feature import blob_log, blob_doh
+from skimage.util import crop
+import skimage.data as data
 from names import *
 
 
@@ -7,6 +11,7 @@ class Strand(object):
     """
     Represents one possible strand in a loom's image / canvas.
     """
+
     def __init__(self, nail1: Nail, nail2: Nail):
         nail1, nail2 = (nail1, nail2) if nail2 >= nail1 else (nail2, nail1)
         self.nails = (nail1, nail2)
@@ -14,6 +19,25 @@ class Strand(object):
 
     def get_line(self):
         return zip(self.rows, self.cols)
+
+
+def adjust_image(image: Image, board_shape: tuple[int, int]) -> Image:
+    """
+    Adjusts `image` to fit `board_shape`.
+    If the image proportions do not match `board_shape`, the largest middle part of the image will be cropped.
+
+    :param image: The image to be reshaped
+    :param board_shape: The desired shape
+    """
+    image_height, image_width = image.shape
+    board_height, board_width = board_shape
+    scale_factor = board_width / image_width if board_height < board_width else board_height / image_height
+    rescaled_image = rescale(image, scale_factor, preserve_range=True)
+    image_height, image_width = rescaled_image.shape
+    height_crop = (image_height - board_height) // 2
+    width_crop = (image_width - board_width) // 2
+    return crop(rescaled_image, ((height_crop, height_crop), (width_crop, width_crop)))
+    # return np.array(WHITE * cropped, dtype=int)
 
 
 def choose_nails_locations(shape: tuple, k: int) -> list[Nail]:
@@ -42,6 +66,17 @@ def choose_nails_locations(shape: tuple, k: int) -> list[Nail]:
     return [border_pixels[i] for i in chosen_indices]
 
 
+def find_nails_locations(board: Image) -> list[Nail]:
+    """
+    Detects the location of the nails on the board.
+
+    :param board: A grayscale (0-255) image of the nailed board.
+    """
+    normalized_negative = 1-(board/WHITE)
+    centers_sigmas = blob_log(normalized_negative)
+    return [(int(c[0]), int(c[1])) for c in centers_sigmas]
+
+
 def get_all_possible_strands(nails_locations: list[Nail]) -> dict[Nail, list[Strand]]:
     """
     Generates a dict mapping from a nail to a list of all his possible strands.
@@ -63,9 +98,8 @@ def find_darkest_strand(image: Image, possible_strands: list[Strand]) -> Strand:
     :param possible_strands: A list of all the lines in the image to check.
     :return: The darkest strand in `possible_strands` relative to `image`.
     """
-    # mean_values = [np.mean([image[index] for index in strand.line])
-    #                for strand in possible_strands]
-    # min_index = np.argmin(mean_values)
+    # return possible_strands[np.argmin(list(map(lambda s: np.mean(image[s.rows, s.cols]), possible_strands)))]
+    # return possible_strands[np.argmin([np.mean(image[s.rows, s.cols]) for s in possible_strands])]
     min_index = 0
     min_mean = WHITE
     for i, strand in enumerate(possible_strands):
@@ -76,18 +110,15 @@ def find_darkest_strand(image: Image, possible_strands: list[Strand]) -> Strand:
     return possible_strands[min_index]
 
 
-def get_nails_sequence(strands: list[Strand]) -> list[Nail]:
-    return [(0, 0)]
-
-
 class Loom(object):
     """
     Utility for approximating images using strands.
     """
-    def __init__(self, image_: Image, k_: int):
-        self.image = image_.copy()
-        self.canvas = WHITE * np.ones(image_.shape, dtype=int)
-        self.nails = choose_nails_locations(image_.shape, k_)
+
+    def __init__(self, image_: Image, board_: Image):
+        self.image = adjust_image(image_, board_.shape)
+        self.canvas = WHITE * np.ones(board_.shape, dtype=int)
+        self.nails = find_nails_locations(board_)
         self.strands = get_all_possible_strands(self.nails)
         self.intensity = int(np.floor(WHITE * 0.1))
 
@@ -115,7 +146,7 @@ class Loom(object):
         while counter < bound:
             print(f"{counter}/{bound}")
             # Find the darkest strand relative to `self.image`,
-            # remove its intensity from `self.canvas` and add its intensity to `self.image1
+            # remove its intensity from `self.canvas` and add its intensity to `self.image`
             current_strand = find_darkest_strand(self.image, self.strands[current_nail])
             for pixel in current_strand.get_line():
                 self.image[pixel] = min(WHITE, self.image[pixel] + self.intensity)

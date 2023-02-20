@@ -1,9 +1,7 @@
-import numpy as np
+from timeit import timeit
+from time import time
 import matplotlib.pyplot as plt
-import cv2
-from skimage.draw import line_aa
-
-import preprocessing as pre
+from skimage.io import imread
 from loom import *
 
 
@@ -14,10 +12,7 @@ def read_image(path: str) -> Image:
     :param path: Path to the image
     :return: A grayscale variant of the image as a 2d numpy array
     """
-    image = cv2.imread(path)
-    if len(image.shape) > 2:
-        return cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-    return image
+    return np.array(WHITE*imread(path, as_gray=True), dtype=int)
 
 
 def plot_image(image: Image):
@@ -28,23 +23,31 @@ def plot_image(image: Image):
     plt.show()
 
 
-if __name__ == '__main__':
-    k_nails = 200
+def main():
+    mona = read_image("Images/MonaLisa.jpeg")
+    board = read_image("Images/circular_nails_frame.jpg")
     intensity = 0.1
-    n_iter = 6000
-    mona = read_image("Images/mona_big.jpg")
-    loom = Loom(mona, k_nails)
+    n_iter = 4000
+    loom = Loom(mona, board)
     loom.set_intensity(intensity)
-    print(loom.weave(n_iter))
-    plt.title(f"{k_nails} nails, {n_iter} iterations, {intensity} intensity")
-    plot_image(loom.canvas)
+    # start = time()
     # plot_image(loom.image)
+    loom.weave(n_iter)
+    # print(f"time = {time() - start}")
+    plot_image(loom.canvas)
 
-    # mona = pre.read_image("images/MonaLisa.jpeg")
-    # uri = pre.read_image("images/uri.jpg")
-    # IMG = mona
-    # loom = Loom(IMG, 200)
-    # loom.weave(4000, intensity=50)
-    #
-    # plt.imshow(loom.canvas, cmap='gray')
-    # plt.show()
+
+def main1():
+    board = read_image("Images/nails_frame.jpg")
+    nails = find_nails_locations(board)
+    locs = np.zeros_like(board)
+    for (i, j) in nails:
+        locs[i][j] = WHITE*10
+    plot_image(locs)
+
+
+if __name__ == '__main__':
+    main()
+    # print(timeit(stmt='main()', setup='from __main__ import main', number=1))
+
+
