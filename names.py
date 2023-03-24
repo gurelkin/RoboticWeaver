@@ -9,5 +9,4 @@ Line = list[Pixel]
 
 # Constants
 WHITE = 255
-GRAY = 127
 BLACK = 0

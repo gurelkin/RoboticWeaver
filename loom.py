@@ -16,7 +16,7 @@ class Strand(object):
         return zip(self.rows, self.cols)
 
 
-def rectangle_nails_locations(shape: tuple, k: int) -> list[Nail]:
+def choose_nails_locations(shape: tuple, k: int) -> list[Nail]:
     """
     Sets the location of `k` nails on the border of an image with `shape` dimensions.
 
@@ -76,14 +76,18 @@ def find_darkest_strand(image: Image, possible_strands: list[Strand]) -> Strand:
     return possible_strands[min_index]
 
 
+def get_nails_sequence(strands: list[Strand]) -> list[Nail]:
+    return [(0, 0)]
+
+
 class Loom(object):
     """
     Utility for approximating images using strands.
     """
-    def __init__(self, image_: Image, nails_: list[Nail]):
+    def __init__(self, image_: Image, k_: int):
         self.image = image_.copy()
         self.canvas = WHITE * np.ones(image_.shape, dtype=int)
-        self.nails = nails_
+        self.nails = choose_nails_locations(image_.shape, k_)
         self.strands = get_all_possible_strands(self.nails)
         self.intensity = int(np.floor(WHITE * 0.1))
 
