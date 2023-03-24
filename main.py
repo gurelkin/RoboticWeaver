@@ -69,9 +69,7 @@ def set_nails_locations(board: Image, target_shape: tuple[Pixel]):
 def set_nails_locations(board: Image, target_shape: tuple[int, int]):
     blobs = blob_log(board)
 
-
-
-if __name__ == '__main__':
+def main_old():
     number_of_nails = 200
     intensity = 0.1
     number_of_iter = 6000
@@ -91,3 +89,7 @@ if __name__ == '__main__':
     #
     # plt.imshow(loom.canvas, cmap='gray')
     # plt.show()
+
+
+if __name__ == '__main__':
+    main_old()
