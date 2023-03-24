@@ -32,7 +32,7 @@ def main_old():
     k_nails = 200
     intensity = 0.1
     n_iter = 6000
-    mona = read_image("Images/mona_big.jpg")
+    mona = read_image("Images/MonaLisa.jpeg")
     loom = Loom(mona, k_nails)
     loom.set_intensity(intensity)
     print(loom.weave(n_iter))
