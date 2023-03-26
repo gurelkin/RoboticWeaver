@@ -32,7 +32,7 @@ def adjust_image(image: Image, board_shape: tuple[int, int]) -> Image:
     """
     image_height, image_width = image.shape
     board_height, board_width = board_shape
-    scale_factor = board_width / image_width if board_height < board_width else board_height / image_height
+    scale_factor = board_height / image_height if image_height < image_width else board_width / image_width
     rescaled_image = rescale(image, scale_factor, preserve_range=True)
     image_height, image_width = rescaled_image.shape
     height_crop = (image_height - board_height) // 2

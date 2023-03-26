@@ -26,7 +26,7 @@ def plot_image(image: Image):
 
 
 def main_1():
-    mona = read_image("Images/hendrix.jpg")
+    mona = read_image("Images/galileo.jpg")
     board = read_image("Images/smaller_shape_nail_frame.jpg")
     intensity = 0.1
     n_iter = 4000
