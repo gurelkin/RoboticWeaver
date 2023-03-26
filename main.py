@@ -1,6 +1,8 @@
+import math
 from timeit import timeit
 from time import time
 import matplotlib.pyplot as plt
+import numpy as np
 from skimage.io import imread
 from loom import *
 
@@ -19,35 +21,65 @@ def plot_image(image: Image):
     """
     Plots `image` in grayscale.
     """
-    plt.imshow(image, cmap='gray')
+    plt.imshow(image, cmap='gray', vmin=BLACK, vmax=WHITE)
     plt.show()
 
 
-def main():
-    mona = read_image("Images/MonaLisa.jpeg")
-    board = read_image("Images/circular_nails_frame.jpg")
+def main_1():
+    mona = read_image("Images/hendrix.jpg")
+    board = read_image("Images/smaller_shape_nail_frame.jpg")
     intensity = 0.1
     n_iter = 4000
+    # loom = Loom(mona, board)
     loom = Loom(mona, board)
     loom.set_intensity(intensity)
     # start = time()
-    # plot_image(loom.image)
+    print(f"Intensity = {intensity}")
+    print(f"Number of iterations = {n_iter}")
+    print(f"Number of nails = {len(loom.nails)}")
+    plot_image(loom.image)
+    print(f"Image shape = {loom.image.shape}, Canvas shape = {loom.canvas.shape}")
     loom.weave(n_iter)
     # print(f"time = {time() - start}")
     plot_image(loom.canvas)
 
 
-def main1():
+def main_2():
+    mona = read_image("Images/MonaLisa.jpeg")
+    intensity = 0.1
+    n_iter = 5000
+    n_nails = 200
+    loom = Loom(mona, n_nails, (500, 250))
+    loom.set_intensity(intensity)
+    # start = time()
+    print(f"Intensity = {intensity}")
+    print(f"Number of iterations = {n_iter}")
+    print(f"Number of nails = {len(loom.nails)}")
+    loom.weave(n_iter)
+    # print(f"time = {time() - start}")
+    plot_image(loom.canvas)
+
+
+def main_3():
     board = read_image("Images/nails_frame.jpg")
-    nails = find_nails_locations(board)
-    locs = np.zeros_like(board)
-    for (i, j) in nails:
-        locs[i][j] = WHITE*10
-    plot_image(locs)
+    nails_i, nails_j = find_nails_locations_two_lists(board)
+    out = WHITE*np.ones_like(board)
+    out[nails_i, nails_j] = BLACK
+    print(np.min(out), np.max(out))
+    plot_image(out)
+
+
+def main_4():
+    mona = read_image("Images/MonaLisa.jpeg")
+    board = read_image("Images/circular_nails_frame.jpg")
+    adjusted = adjust_image(mona, board.shape)
+    print(adjusted)
+    print(f"max = {np.max(adjusted)}, min = {np.min(adjusted)}")
+    plot_image(adjusted)
 
 
 if __name__ == '__main__':
-    main()
+    main_1()
     # print(timeit(stmt='main()', setup='from __main__ import main', number=1))
 
 

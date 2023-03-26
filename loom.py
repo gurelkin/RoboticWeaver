@@ -1,10 +1,11 @@
 import numpy as np
 from skimage.draw import line
 from skimage.transform import rescale
-from skimage.feature import blob_log, blob_doh
+from skimage.feature import blob_log
 from skimage.util import crop
 import skimage.data as data
 from names import *
+from main import plot_image
 
 
 class Strand(object):
@@ -36,8 +37,8 @@ def adjust_image(image: Image, board_shape: tuple[int, int]) -> Image:
     image_height, image_width = rescaled_image.shape
     height_crop = (image_height - board_height) // 2
     width_crop = (image_width - board_width) // 2
-    return crop(rescaled_image, ((height_crop, height_crop), (width_crop, width_crop)))
-    # return np.array(WHITE * cropped, dtype=int)
+    cropped = crop(rescaled_image, ((height_crop, height_crop), (width_crop, width_crop)))
+    return np.array(cropped.tolist(), dtype=int)
 
 
 def choose_nails_locations(shape: tuple, k: int) -> list[Nail]:
@@ -75,6 +76,12 @@ def find_nails_locations(board: Image) -> list[Nail]:
     normalized_negative = 1-(board/WHITE)
     centers_sigmas = blob_log(normalized_negative)
     return [(int(c[0]), int(c[1])) for c in centers_sigmas]
+
+
+def find_nails_locations_two_lists(board: Image):
+    normalized_negative = 1 - (board / WHITE)
+    centers_sigmas = blob_log(normalized_negative)
+    return [int(c[0]) for c in centers_sigmas], [int(c[1]) for c in centers_sigmas]
 
 
 def get_all_possible_strands(nails_locations: list[Nail]) -> dict[Nail, list[Strand]]:
@@ -122,6 +129,14 @@ class Loom(object):
         self.strands = get_all_possible_strands(self.nails)
         self.intensity = int(np.floor(WHITE * 0.1))
 
+    # def __init__(self, image_: Image, k_: int, shape):
+    #     image_ = adjust_image(image_, shape)
+    #     self.image = image_.copy()
+    #     self.canvas = WHITE * np.ones(image_.shape, dtype=int)
+    #     self.nails = choose_nails_locations(image_.shape, k_)
+    #     self.strands = get_all_possible_strands(self.nails)
+    #     self.intensity = int(np.floor(WHITE * 0.1))
+
     def set_intensity(self, new_intensity: float):
         """
         Set the intensity of the loom's strands.
@@ -145,7 +160,7 @@ class Loom(object):
         nails_sequence = []
         while counter < bound:
             print(f"{counter}/{bound}")
-            # Find the darkest strand relative to `self.image`,
+            # Find the darkest strand relative to `self.image`
             # remove its intensity from `self.canvas` and add its intensity to `self.image`
             current_strand = find_darkest_strand(self.image, self.strands[current_nail])
             for pixel in current_strand.get_line():
