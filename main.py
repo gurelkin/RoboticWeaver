@@ -45,7 +45,7 @@ def main_1():
 
 
 def main_2():
-    mona = read_image("Images/MonaLisa.jpeg")
+    mona = read_image("Images/hendrix.jpg")
     intensity = 0.1
     n_iter = 5000
     n_nails = 200
@@ -61,7 +61,7 @@ def main_2():
 
 
 def main_3():
-    board = read_image("Images/nails_frame.jpg")
+    board = read_image("Images/uri.jpg")
     nails_i, nails_j = find_nails_locations_two_lists(board)
     out = WHITE*np.ones_like(board)
     out[nails_i, nails_j] = BLACK
@@ -72,14 +72,21 @@ def main_3():
 def main_4():
     mona = read_image("Images/MonaLisa.jpeg")
     board = read_image("Images/circular_nails_frame.jpg")
-    adjusted = adjust_image(mona, board.shape)
+    adjusted = adjust_image_dimensions(mona, board.shape)
     print(adjusted)
     print(f"max = {np.max(adjusted)}, min = {np.min(adjusted)}")
     plot_image(adjusted)
 
 
+def main_5():
+    image = read_image("Images/MonaLisa.jpeg")
+    board = read_image("Images/smaller_shape_nail_frame.jpg")
+    loom = Loom(image, board)
+    loom.plot_all_nail_numbers()
+
+
 if __name__ == '__main__':
-    main_1()
+    main_5()
     # print(timeit(stmt='main()', setup='from __main__ import main', number=1))
 
 

@@ -11,3 +11,7 @@ Line = list[Pixel]
 WHITE = 255
 GREY = 127
 BLACK = 0
+
+# Globals
+OPT_RES = 400  # TODO: find the real optimum using trial and error (so far it seems sufficient)
+FONT_SIZE = 6

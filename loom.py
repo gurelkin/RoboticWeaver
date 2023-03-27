@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from skimage.draw import line
 from skimage.transform import rescale
 from skimage.feature import blob_log
@@ -22,7 +23,13 @@ class Strand(object):
         return zip(self.rows, self.cols)
 
 
-def adjust_image(image: Image, board_shape: tuple[int, int]) -> Image:
+def adjust_image_size(image: Image, resolution: int) -> Image:
+    height, width = image.shape
+    scale_factor = resolution / height if height < width else resolution / width
+    return rescale(image, scale_factor, preserve_range=True)
+
+
+def adjust_image_dimensions(image: Image, board_shape: tuple[int, int]) -> Image:
     """
     Adjusts `image` to fit `board_shape`.
     If the image proportions do not match `board_shape`, the largest middle part of the image will be cropped.
@@ -123,9 +130,10 @@ class Loom(object):
     """
 
     def __init__(self, image_: Image, board_: Image):
-        self.image = adjust_image(image_, board_.shape)
-        self.canvas = WHITE * np.ones(board_.shape, dtype=int)
-        self.nails = find_nails_locations(board_)
+        self.board = adjust_image_size(board_, OPT_RES)
+        self.image = adjust_image_dimensions(image_, self.board.shape)
+        self.canvas = WHITE * np.ones(self.board.shape, dtype=int)
+        self.nails = find_nails_locations(self.board)
         self.strands = get_all_possible_strands(self.nails)
         self.intensity = int(np.floor(WHITE * 0.1))
 
@@ -183,3 +191,27 @@ class Loom(object):
         self.canvas = WHITE * np.ones(new_image.shape, dtype=int)
         self.nails = choose_nails_locations(new_image.shape, new_k)
         self.strands = get_all_possible_strands(self.nails)
+
+    def plot_nail_number(self, location):
+        number = -1
+        for num, nail in enumerate(self.nails):
+            if nail == location:
+                number = num
+        plt.text(location[1], location[0], str(number + 1), fontsize=FONT_SIZE, color='red')
+        plt.imshow(self.board, cmap='gray')
+        plt.show()
+
+    def plot_nail_location(self, number):
+        location = (-1, -1)
+        for num, nail in enumerate(self.nails):
+            if num+1 == number:
+                location = nail
+        plt.text(location[1], location[0], str(number + 1), fontsize=FONT_SIZE, color='red')
+        plt.imshow(self.board, cmap='gray')
+        plt.show()
+
+    def plot_all_nail_numbers(self):
+        for number, nail in enumerate(self.nails):
+            plt.text(nail[1], nail[0], str(number+1), fontsize=FONT_SIZE, color='red')
+        plt.imshow(self.board, cmap='gray')
+        plt.show()
