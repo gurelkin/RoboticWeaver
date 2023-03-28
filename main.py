@@ -4,6 +4,7 @@ import cv2
 from skimage.draw import line_aa
 
 import preprocessing as pre
+from animation import Animator
 from loom import *
 
 
@@ -50,5 +51,17 @@ def main_old():
     # plt.show()
 
 
+def main_anim():
+    k_nails = 200
+    intensity = 0.2
+    n_iter = 3000
+    mona = read_image("Images/MonaLisa.jpeg")
+    loom = Loom(mona, k_nails)
+    loom.set_intensity(intensity)
+    weaving = loom.weave(n_iter)
+    anim = Animator(weaving, loom.canvas.shape, loom.nails, n_iter, intensity, FPS=100)
+    anim.animate()
+
+
 if __name__ == '__main__':
-    main_old()
+    main_anim()
