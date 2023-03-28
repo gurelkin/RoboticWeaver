@@ -39,8 +39,9 @@ class Animator:
         self.shape = (shape[1], shape[0])
         self.num_iter = num_iter
         self.line_color = (0, 0, 0, 255 * intensity)
-        self.screen = pygame.display.set_mode(shape)
+        self.screen = pygame.display.set_mode(self.shape)
         self.fps = FPS
+        print(f"screen is at {self.screen.get_size()}")
 
     def animate(self):
         self.screen.fill(WHITE)

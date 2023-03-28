@@ -54,11 +54,14 @@ def main_old():
 def main_anim():
     k_nails = 200
     intensity = 0.2
-    n_iter = 3000
-    mona = read_image("Images/MonaLisa.jpeg")
+    n_iter = 1300
+    # mona = read_image("Images/MonaLisa.jpeg")
+    mona = read_image("Images/jimmy.jpg")
     loom = Loom(mona, k_nails)
     loom.set_intensity(intensity)
     weaving = loom.weave(n_iter)
+    # plt.title(f"{k_nails} nails, {n_iter} iterations, {intensity} intensity")
+    # plot_image(loom.canvas)
     anim = Animator(weaving, loom.canvas.shape, loom.nails, n_iter, intensity, FPS=100)
     anim.animate()
 
