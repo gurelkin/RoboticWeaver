@@ -3,6 +3,7 @@ from timeit import timeit
 from time import time
 import matplotlib.pyplot as plt
 import numpy as np
+from animation import Animator
 from skimage.io import imread
 from loom import *
 
@@ -47,46 +48,39 @@ def main_1():
 def main_2():
     mona = read_image("Images/hendrix.jpg")
     intensity = 0.1
-    n_iter = 5000
-    n_nails = 200
-    loom = Loom(mona, n_nails, (500, 250))
+    n_iter = 6000
+    mona = read_image("Images/mona_big.jpg")
+    loom = Loom(mona, k_nails)
     loom.set_intensity(intensity)
-    # start = time()
-    print(f"Intensity = {intensity}")
-    print(f"Number of iterations = {n_iter}")
-    print(f"Number of nails = {len(loom.nails)}")
-    loom.weave(n_iter)
-    # print(f"time = {time() - start}")
+    print(loom.weave(n_iter))
+    plt.title(f"{k_nails} nails, {n_iter} iterations, {intensity} intensity")
     plot_image(loom.canvas)
+    # plot_image(loom.image)
+
+    # mona = pre.read_image("images/MonaLisa.jpeg")
+    # uri = pre.read_image("images/uri.jpg")
+    # IMG = mona
+    # loom = Loom(IMG, 200)
+    # loom.weave(4000, intensity=50)
+    #
+    # plt.imshow(loom.canvas, cmap='gray')
+    # plt.show()
 
 
-def main_3():
-    board = read_image("Images/uri.jpg")
-    nails_i, nails_j = find_nails_locations_two_lists(board)
-    out = WHITE*np.ones_like(board)
-    out[nails_i, nails_j] = BLACK
-    print(np.min(out), np.max(out))
-    plot_image(out)
-
-
-def main_4():
-    mona = read_image("Images/MonaLisa.jpeg")
-    board = read_image("Images/circular_nails_frame.jpg")
-    adjusted = adjust_image_dimensions(mona, board.shape)
-    print(adjusted)
-    print(f"max = {np.max(adjusted)}, min = {np.min(adjusted)}")
-    plot_image(adjusted)
-
-
-def main_5():
-    image = read_image("Images/MonaLisa.jpeg")
-    board = read_image("Images/smaller_shape_nail_frame.jpg")
-    loom = Loom(image, board)
-    loom.plot_all_nail_numbers()
+def main_anim():
+    k_nails = 200
+    intensity = 0.2
+    n_iter = 1300
+    # mona = read_image("Images/MonaLisa.jpeg")
+    mona = read_image("Images/jimmy.jpg")
+    loom = Loom(mona, k_nails)
+    loom.set_intensity(intensity)
+    weaving = loom.weave(n_iter)
+    # plt.title(f"{k_nails} nails, {n_iter} iterations, {intensity} intensity")
+    # plot_image(loom.canvas)
+    anim = Animator(weaving, loom.canvas.shape, loom.nails, n_iter, intensity, FPS=100)
+    anim.animate()
 
 
 if __name__ == '__main__':
-    main_1()
-    # print(timeit(stmt='main()', setup='from __main__ import main', number=1))
-
-
+    main_anim()
