@@ -26,10 +26,10 @@ def plot_image(image: Image):
 
 
 def main_1():
-    mona = read_image("Images/galileo.jpg")
+    mona = read_image("Images/MonaLisa.jpeg")
     board = read_image("Images/smaller_shape_nail_frame.jpg")
-    intensity = 0.1
-    n_iter = 4000
+    intensity = 0.15
+    n_iter = 2000
     # loom = Loom(mona, board)
     loom = Loom(mona, board)
     loom.set_intensity(intensity)
@@ -37,9 +37,9 @@ def main_1():
     print(f"Intensity = {intensity}")
     print(f"Number of iterations = {n_iter}")
     print(f"Number of nails = {len(loom.nails)}")
-    plot_image(loom.image)
     print(f"Image shape = {loom.image.shape}, Canvas shape = {loom.canvas.shape}")
-    loom.weave(n_iter)
+    print(f"Initial brightness = {loom.initial_mean}")
+    loom.weave()
     # print(f"time = {time() - start}")
     plot_image(loom.canvas)
 
@@ -86,7 +86,7 @@ def main_5():
 
 
 if __name__ == '__main__':
-    main_5()
+    main_1()
     # print(timeit(stmt='main()', setup='from __main__ import main', number=1))
 
 

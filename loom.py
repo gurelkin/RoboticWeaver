@@ -121,7 +121,7 @@ def find_darkest_strand(image: Image, possible_strands: list[Strand]) -> Strand:
         if curr_mean < min_mean:
             min_mean = curr_mean
             min_index = i
-    return possible_strands[min_index]
+    return possible_strands[min_index], min_mean
 
 
 class Loom(object):
@@ -136,6 +136,7 @@ class Loom(object):
         self.nails = find_nails_locations(self.board)
         self.strands = get_all_possible_strands(self.nails)
         self.intensity = int(np.floor(WHITE * 0.1))
+        self.initial_mean = np.mean(self.image)
 
     # def __init__(self, image_: Image, k_: int, shape):
     #     image_ = adjust_image(image_, shape)
@@ -156,7 +157,7 @@ class Loom(object):
         else:
             print(f"Invalid intensity: `{new_intensity}` is not between 0 and 1")
 
-    def weave(self, bound: int) -> list[Nail]:
+    def weave(self) -> list[Nail]:
         """
         Weaves onto `self.canvas` a strand-approximation of `self.image`.
 
@@ -166,11 +167,12 @@ class Loom(object):
         counter = 0
         current_nail = self.nails[0]
         nails_sequence = []
-        while counter < bound:
-            print(f"{counter}/{bound}")
+        current_mean = 0
+        while current_mean < TARGET_BRIGHTNESS:
+            print(f"iter {counter}")
             # Find the darkest strand relative to `self.image`
             # remove its intensity from `self.canvas` and add its intensity to `self.image`
-            current_strand = find_darkest_strand(self.image, self.strands[current_nail])
+            current_strand, current_mean = find_darkest_strand(self.image, self.strands[current_nail])
             for pixel in current_strand.get_line():
                 self.image[pixel] = min(WHITE, self.image[pixel] + self.intensity)
                 self.canvas[pixel] = max(BLACK, self.canvas[pixel] - self.intensity)
