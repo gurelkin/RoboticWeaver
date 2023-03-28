@@ -4,7 +4,7 @@ import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
 import random
-from loom import choose_nails_locations
+# from loom import choose_nails_locations
 
 pygame.init()
 WHITE = (255, 255, 255)
@@ -12,16 +12,16 @@ WHITE = (255, 255, 255)
 clock = pygame.time.Clock()
 
 
-def make_random_weaving(num_iter, nails):
-    out = []
-    current_nail = nails[0]
-    for i in range(num_iter):
-        next_nail = random.choice(nails)
-        while next_nail == current_nail:
-            next_nail = random.choice(nails)
-        out.append((current_nail, next_nail))
-        current_nail = next_nail
-    return out
+# def make_random_weaving(num_iter, nails):
+#     out = []
+#     current_nail = nails[0]
+#     for i in range(num_iter):
+#         next_nail = random.choice(nails)
+#         while next_nail == current_nail:
+#             next_nail = random.choice(nails)
+#         out.append((current_nail, next_nail))
+#         current_nail = next_nail
+#     return out
 
 
 class Animator:
