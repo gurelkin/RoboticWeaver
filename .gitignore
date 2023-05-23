@@ -3,3 +3,5 @@
 *.xml
 *.jpg
 /.idea/RoboticWeaverProject.iml
+*.pyc
+.idea/.name
