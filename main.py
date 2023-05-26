@@ -47,7 +47,7 @@ def main_1():
 
 def main_anim():
     mona = read_image("Images/MonaLisa.jpeg")
-    board = read_image("Images/smaller_shape_nail_frame.jpg")
+    board = read_image("Images/nails_polygon.jpg")
     intensity = 0.15
     n_iter = 2000
     # loom = Loom(mona, board)
