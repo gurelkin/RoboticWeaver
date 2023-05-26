@@ -1,8 +1,12 @@
 import math
 from timeit import timeit
 from time import time
+
+import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+import skimage
+
 from animation import Animator
 from skimage.io import imread
 from loom import *
@@ -27,9 +31,9 @@ def plot_image(image: Image):
 
 
 def main_1():
-    mona = read_image("Images/MonaLisa.jpeg")
-    board = read_image("Images/smaller_shape_nail_frame.jpg")
-    intensity = 0.15
+    mona = read_image("Images/hendrix.jpg")
+    board = read_image("Images/nails_square.jpg")
+    intensity = 0.12
     n_iter = 2000
     # loom = Loom(mona, board)
     loom = Loom(mona, board)
@@ -60,5 +64,34 @@ def main_anim():
     anim.animate()
 
 
+def main_cap():
+    mona = read_image("Images/MonaLisa.jpeg")
+    board = read_image("captured.png")
+    negative = 255 - board
+    negative = skimage.filters.gaussian(negative,
+                                        sigma=1,
+                                        preserve_range=True)
+    for i in range(len(negative)):
+        for j in range(len(negative[i])):
+            pxl = negative[i][j]
+            if pxl < 140:
+                negative[i][j] = 0
+    plot_image(negative)
+    # loom = Loom(mona, board)
+    # print(loom.nails)
+    # negative = skimage.filters.gaussian(negative,
+    #                                     sigma=1,
+    #                                     preserve_range=True)
+    # plot_image(negative)
+    plt.imshow(board)
+    bl = blob_log(negative/255)
+    nails = [(int(c[0]), int(c[1])) for c in bl]
+    plt.scatter([n[1] for n in nails],
+                [n[0] for n in nails])
+    plt.show()
+    print(nails)
+    # print(blob_log(negative/255))
+
+
 if __name__ == '__main__':
-    main_anim()
+    main_cap()
