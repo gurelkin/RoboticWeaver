@@ -74,21 +74,27 @@ def choose_nails_locations(shape: tuple, k: int) -> list[Nail]:
     return [border_pixels[i] for i in chosen_indices]
 
 
-def find_nails_locations(board: Image) -> list[Nail]:
+def find_nails_locations(board: Image, epsilon=7) -> list[Nail]:
     """
     Detects the location of the nails on the board.
 
+    :param epsilon: the maximum distance for blobs to be counted as the same nail.
     :param board: A grayscale (0-255) image of the nailed board.
     """
     normalized_negative = 1-(board/WHITE)
     centers_sigmas = blob_log(normalized_negative)
-    return [(int(c[0]), int(c[1])) for c in centers_sigmas]
-
-
-def find_nails_locations_two_lists(board: Image):
-    normalized_negative = 1 - (board / WHITE)
-    centers_sigmas = blob_log(normalized_negative)
-    return [int(c[0]) for c in centers_sigmas], [int(c[1]) for c in centers_sigmas]
+    nails = [(int(c[0]), int(c[1])) for c in centers_sigmas]
+    new_nails = []
+    for nail in nails:
+        good_nail = True
+        for nn in new_nails:
+            if np.math.dist(nail, nn) < epsilon:
+                # they are the same nail, probably
+                good_nail = False
+                break
+        if good_nail:
+            new_nails.append(nail)
+    return new_nails
 
 
 def get_all_possible_strands(nails_locations: list[Nail]) -> dict[Nail, list[Strand]]:

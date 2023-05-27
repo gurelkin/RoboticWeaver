@@ -10,6 +10,7 @@ import skimage
 from animation import Animator
 from skimage.io import imread
 from loom import *
+import sys
 
 
 def read_image(path: str) -> Image:
@@ -19,7 +20,7 @@ def read_image(path: str) -> Image:
     :param path: Path to the image
     :return: A grayscale variant of the image as a 2d numpy array
     """
-    return np.array(WHITE*imread(path, as_gray=True), dtype=int)
+    return np.array(WHITE * imread(path, as_gray=True), dtype=int)
 
 
 def plot_image(image: Image):
@@ -28,6 +29,15 @@ def plot_image(image: Image):
     """
     plt.imshow(image, cmap='gray', vmin=BLACK, vmax=WHITE)
     plt.show()
+
+
+def save_plot_image(image: Image, path: str):
+    """
+    Plots `image` in grayscale.
+    """
+    plt.imshow(image, cmap='gray', vmin=BLACK, vmax=WHITE)
+    plt.savefig(path)
+
 
 def threshold_contrast(board, threshold):
     for i in range(len(board)):
@@ -38,6 +48,7 @@ def threshold_contrast(board, threshold):
             else:
                 board[i][j] = 255
     return board
+
 
 def nail_coordinates(nails_list, z_camera, image_shape, focal_length=1):
     image_center_x, image_center_y = image_shape[:2] / 2
@@ -52,6 +63,14 @@ def nail_coordinates(nails_list, z_camera, image_shape, focal_length=1):
         coordinates.append((x, y))
 
     return coordinates
+
+
+def write_nails_to_file(nails, path, image_height):
+    with open(path, "w") as f:
+        for y, x in nails:
+            y = image_height - y
+            f.write(f"{x} {y}\n")
+
 
 def main_1():
     mona = read_image("Images/hendrix.jpg")
@@ -95,7 +114,7 @@ def main_cap():
     negative = skimage.filters.gaussian(negative,
                                         sigma=1,
                                         preserve_range=True)
-    thresh = 1.6*np.math.floor(np.mean(negative))
+    thresh = 1.6 * np.math.floor(np.mean(negative))
     negative = threshold_contrast(negative, thresh)
     plot_image(negative)
     # loom = Loom(mona, board)
@@ -105,7 +124,7 @@ def main_cap():
     #                                     preserve_range=True)
     # plot_image(negative)
     plt.imshow(board)
-    bl = blob_log(negative/255)
+    bl = blob_log(negative / 255)
     nails = [(int(c[0]), int(c[1])) for c in bl]
 
     print(nails)
@@ -126,5 +145,22 @@ def main_cap():
     plt.show()
 
 
+def main(*args, **kwargs):
+    if len(sys.argv) != 3:
+        print("Usage: main.py <image path> <nails image path>")
+    image_path = sys.argv[1]
+    nails_path = sys.argv[2]
+    image = read_image(image_path)
+    board = read_image(nails_path)
+    intensity = 0.12
+    # loom = Loom(mona, board)
+    loom = Loom(image, board)
+    loom.set_intensity(intensity)
+    nail_sequence = loom.weave()
+    save_plot_image(loom.canvas, image_path + "_result.png")
+    write_nails_to_file(nail_sequence, image_path + "_sequence.ssc", len(image))
+    print("Done.")
+
+
 if __name__ == '__main__':
-    main_cap()
+    main()
