@@ -29,6 +29,29 @@ def plot_image(image: Image):
     plt.imshow(image, cmap='gray', vmin=BLACK, vmax=WHITE)
     plt.show()
 
+def threshold_contrast(board, threshold):
+    for i in range(len(board)):
+        for j in range(len(board[i])):
+            pxl = board[i][j]
+            if pxl <= threshold:
+                board[i][j] = 0
+            else:
+                board[i][j] = 255
+    return board
+
+def nail_coordinates(nails_list, z_camera, image_shape, focal_length=1):
+    image_center_x, image_center_y = image_shape[:2] / 2
+
+    # Calculate the coordinates for each pixel in the list
+    coordinates = []
+    for nail in nails_list:
+        x_nail, y_nail = nail
+        x = (x_nail - image_center_x) * (z_camera / focal_length)
+        y = (y_nail - image_center_y) * (z_camera / focal_length)
+
+        coordinates.append((x, y))
+
+    return coordinates
 
 def main_1():
     mona = read_image("Images/hendrix.jpg")
@@ -67,15 +90,13 @@ def main_anim():
 def main_cap():
     mona = read_image("Images/MonaLisa.jpeg")
     board = read_image("captured.png")
+    THRESH = 140
     negative = 255 - board
     negative = skimage.filters.gaussian(negative,
                                         sigma=1,
                                         preserve_range=True)
-    for i in range(len(negative)):
-        for j in range(len(negative[i])):
-            pxl = negative[i][j]
-            if pxl < 140:
-                negative[i][j] = 0
+    thresh = 1.6*np.math.floor(np.mean(negative))
+    negative = threshold_contrast(negative, thresh)
     plot_image(negative)
     # loom = Loom(mona, board)
     # print(loom.nails)
@@ -86,11 +107,23 @@ def main_cap():
     plt.imshow(board)
     bl = blob_log(negative/255)
     nails = [(int(c[0]), int(c[1])) for c in bl]
-    plt.scatter([n[1] for n in nails],
-                [n[0] for n in nails])
-    plt.show()
+
     print(nails)
-    # print(blob_log(negative/255))
+    new_nails = []
+    epsilon = 7
+    for nail in nails:
+        good_nail = True
+        for nn in new_nails:
+            if np.math.dist(nail, nn) < epsilon:
+                # they are the same nail, probably
+                good_nail = False
+                break
+        if good_nail:
+            new_nails.append(nail)
+    print(new_nails)
+    plt.scatter([n[1] for n in new_nails],
+                [n[0] for n in new_nails])
+    plt.show()
 
 
 if __name__ == '__main__':
