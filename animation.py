@@ -5,6 +5,7 @@ from names import *
 
 pygame.init()
 clock = pygame.time.Clock()
+folder_path = "C:\\Users\\gursh\\RoboticWeaverProject\\videos"
 
 
 class Animator:
@@ -20,14 +21,15 @@ class Animator:
         self.nails = nails
         self.shape = (shape[1], shape[0])
         self.line_color = (0, 0, 0, 255 * intensity)
-        self.screen = pygame.display.set_mode(self.shape)
-        self.fps = FPS
+        self.screen = pygame.display.set_mode((480, 400))
+        self.fps = fps
         print(f"screen is at {self.screen.get_size()}")
 
     def animate(self, make_video=False, video_name=None):
         self.screen.fill(RGB_WHITE)
         running = True
         index = 0
+
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
