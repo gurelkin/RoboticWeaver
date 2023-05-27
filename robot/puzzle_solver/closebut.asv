@@ -1,0 +1,3 @@
+set(handleToYourMainGUI, 'HandleVisibility', 'off');
+close all;
+set(handleToYourMainGUI, 'HandleVisibility', 'on');

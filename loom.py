@@ -1,12 +1,9 @@
-import numpy as np
-import matplotlib.pyplot as plt
 from skimage.draw import line
-from skimage.transform import rescale
 from skimage.feature import blob_log
+from skimage.transform import rescale
 from skimage.util import crop
-import skimage.data as data
+import matplotlib.pyplot as plt
 from names import *
-from main import plot_image
 
 
 class Strand(object):
@@ -110,7 +107,7 @@ def get_all_possible_strands(nails_locations: list[Nail]) -> dict[Nail, list[Str
             for nail1 in nails_locations}
 
 
-def find_darkest_strand(image: Image, possible_strands: list[Strand]) -> Strand:
+def find_darkest_strand(image: Image, possible_strands: list[Strand]) -> tuple[Strand, float]:
     """
     Finds the strand with the smallest (darkest) mean value in its pixels relative to `image`.
 
@@ -118,8 +115,6 @@ def find_darkest_strand(image: Image, possible_strands: list[Strand]) -> Strand:
     :param possible_strands: A list of all the lines in the image to check.
     :return: The darkest strand in `possible_strands` relative to `image`.
     """
-    # return possible_strands[np.argmin(list(map(lambda s: np.mean(image[s.rows, s.cols]), possible_strands)))]
-    # return possible_strands[np.argmin([np.mean(image[s.rows, s.cols]) for s in possible_strands])]
     min_index = 0
     min_mean = WHITE
     for i, strand in enumerate(possible_strands):
@@ -135,39 +130,19 @@ class Loom(object):
     Utility for approximating images using strands.
     """
 
-    def __init__(self, image_: Image, board_: Image):
+    def __init__(self, image_: Image, board_: Image, intensity=INTENSITY):
         self.board = adjust_image_size(board_, OPT_RES)
         self.image = adjust_image_dimensions(image_, self.board.shape)
         self.canvas = WHITE * np.ones(self.board.shape, dtype=int)
         self.nails = find_nails_locations(self.board)
         self.strands = get_all_possible_strands(self.nails)
-        self.intensity = int(np.floor(WHITE * 0.1))
+        self.intensity = int(np.floor(WHITE * intensity))
         self.initial_mean = np.mean(self.image)
-
-    # def __init__(self, image_: Image, k_: int, shape):
-    #     image_ = adjust_image(image_, shape)
-    #     self.image = image_.copy()
-    #     self.canvas = WHITE * np.ones(image_.shape, dtype=int)
-    #     self.nails = choose_nails_locations(image_.shape, k_)
-    #     self.strands = get_all_possible_strands(self.nails)
-    #     self.intensity = int(np.floor(WHITE * 0.1))
-
-    def set_intensity(self, new_intensity: float):
-        """
-        Set the intensity of the loom's strands.
-
-        :param new_intensity: A value between 0 and 1.
-        """
-        if 0 <= new_intensity <= 1:
-            self.intensity = int(np.floor(WHITE * new_intensity))
-        else:
-            print(f"Invalid intensity: `{new_intensity}` is not between 0 and 1")
 
     def weave(self) -> list[Nail]:
         """
         Weaves onto `self.canvas` a strand-approximation of `self.image`.
 
-        :param bound: Number of weave iterations to be done.
         :return: A list of nails that were used in the weaving in order of usage.
         """
         counter = 0

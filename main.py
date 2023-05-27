@@ -1,16 +1,11 @@
-import math
-from timeit import timeit
-from time import time
-
-import cv2
 import matplotlib.pyplot as plt
-import numpy as np
-import skimage
-
-from animation import Animator
 from skimage.io import imread
-from loom import *
+from skimage.filters import gaussian
+from skimage.feature import blob_log
 import sys
+from animation import Animator
+from loom import Loom
+from names import *
 
 
 def read_image(path: str) -> Image:
@@ -31,9 +26,9 @@ def plot_image(image: Image):
     plt.show()
 
 
-def save_plot_image(image: Image, path: str):
+def save_image(image: Image, path: str):
     """
-    Plots `image` in grayscale.
+    Saves `image` in the requested `path`.
     """
     plt.imshow(image, cmap='gray', vmin=BLACK, vmax=WHITE)
     plt.savefig(path)
@@ -72,48 +67,22 @@ def write_nails_to_file(nails, path, image_height):
             f.write(f"{x} {y}\n")
 
 
-def main_1():
-    mona = read_image("Images/hendrix.jpg")
-    board = read_image("Images/nails_square.jpg")
-    intensity = 0.12
-    n_iter = 2000
-    # loom = Loom(mona, board)
-    loom = Loom(mona, board)
-    loom.set_intensity(intensity)
-    # start = time()
-    print(f"Intensity = {intensity}")
-    print(f"Number of iterations = {n_iter}")
-    print(f"Number of nails = {len(loom.nails)}")
-    print(f"Image shape = {loom.image.shape}, Canvas shape = {loom.canvas.shape}")
-    print(f"Initial brightness = {loom.initial_mean}")
-    loom.weave()
-    # print(f"time = {time() - start}")
-    plot_image(loom.canvas)
-
-
 def main_anim():
-    mona = read_image("Images/MonaLisa.jpeg")
-    board = read_image("Images/nails_polygon.jpg")
+    image = read_image("images/dbg.jpg")
+    board = read_image("frames/nails_polygon.jpg")
     intensity = 0.15
-    n_iter = 2000
-    # loom = Loom(mona, board)
-    loom = Loom(mona, board)
-    loom.set_intensity(intensity)
+    loom = Loom(image, board, intensity=intensity)
     weaving = loom.weave()
-    # plt.title(f"{k_nails} nails, {n_iter} iterations, {intensity} intensity")
-    # plot_image(loom.canvas)
-    anim = Animator(weaving, loom.canvas.shape, loom.nails, n_iter, intensity, FPS=100)
-    anim.animate()
+    anim = Animator(weaving, loom.canvas.shape, loom.nails, intensity)
+    anim.animate(make_video=True, video_name="video")
 
 
 def main_cap():
-    mona = read_image("Images/MonaLisa.jpeg")
+    mona = read_image("images/MonaLisa.jpeg")
     board = read_image("captured.png")
     THRESH = 140
     negative = 255 - board
-    negative = skimage.filters.gaussian(negative,
-                                        sigma=1,
-                                        preserve_range=True)
+    negative = gaussian(negative, sigma=1, preserve_range=True)
     thresh = 1.6 * np.math.floor(np.mean(negative))
     negative = threshold_contrast(negative, thresh)
     plot_image(negative)
@@ -147,20 +116,17 @@ def main_cap():
 
 def main(*args, **kwargs):
     if len(sys.argv) != 3:
-        print("Usage: main.py <image path> <nails image path>")
+        print("Usage: main.py <image path> <nail frame path>")
     image_path = sys.argv[1]
     nails_path = sys.argv[2]
     image = read_image(image_path)
     board = read_image(nails_path)
-    intensity = 0.12
-    # loom = Loom(mona, board)
     loom = Loom(image, board)
-    loom.set_intensity(intensity)
     nail_sequence = loom.weave()
-    save_plot_image(loom.canvas, image_path + "_result.png")
+    save_image(loom.canvas, image_path + "_result.png")
     write_nails_to_file(nail_sequence, image_path + "_sequence.ssc", len(image))
     print("Done.")
 
 
 if __name__ == '__main__':
-    main()
+    main_anim()

@@ -1,0 +1,58 @@
+
+1. Power up robot
+
+2. mex -setup	--> choose Visual C++ 2008
+
+3. loadlibrary
+
+4. get communications handler until com_h=0
+	if fails, clear all, unload library and repeat
+
+5. SelectMode -> play, ServoOn
+
+
+
+Simplified interface requirements
+=================================
+
+- Guided/automatic setup, up to and including step 5.
+
+- Constants
+-----------
+X_Rot = -90;
+Y_Rot = 43;
+Z_Rot_1 = -65;
+Z_Rot_2 = -100;
+
+Z_table_1 = -258;
+Z_table_2 = -255;
+Z_above = -200;
+
+% speed levels
+SPEED_SLOW = 3;
+SPEED_FAST = 10;
+
+X_calib_max = 800
+X_calib_min = 330
+Y_calib_max = 405
+Y_calib_min = 
+X_max
+Y_max
+
+- Wrappers
+----------
+	int[12] P = GetFullPos()
+
+	int[3] P = GetPos()
+
+	% Normalized coordinate system: 
+	% z = [0 : Z_above-Z_table]
+	% x = [0 : X_max]
+	% y = [0 : Y_max]
+	MoveRobot(x, y, z)
+
+	MoveRobotFull(x, y, z, X_Rot, Y_Rot, Z_Rot, )
+
+	SuctionOn()
+
+	SuctionOff()
