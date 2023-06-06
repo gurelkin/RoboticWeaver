@@ -42,16 +42,6 @@ def write_nails_to_file(nails, path, image_height):
 
 
 def main():
-
-
-    loom = Loom(image, board)
-    nail_sequence = loom.weave()
-    weaving = loom.canvas
-    # write_nails_to_file(nail_sequence, image_path + "_sequence.ssc", len(image))
-    save_image(loom.canvas, image_path + "_weave.png")
-
-
-def main():
     image_path = sys.argv[1]
     board_path = sys.argv[2]
     name = sys.argv[3]
