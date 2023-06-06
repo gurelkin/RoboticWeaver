@@ -4,12 +4,12 @@ import pygame
 from names import *
 
 pygame.init()
-clock = pygame.time.Clock()
-folder_path = "C:\\Users\\gursh\\RoboticWeaverProject\\videos"
+# clock = pygame.time.Clock()
+# folder_path = "./videos/"
 
 
 class Animator:
-    def __init__(self, weaving, shape, nails, intensity, fps=ANIMATION_FPS):
+    def __init__(self, weaving, shape, nails, intensity=INTENSITY, fps=ANIMATION_FPS):
         """
         a class used to animate weaving using pygame
         :param weaving: a list of weavings (pairs of nails locations)
@@ -25,7 +25,7 @@ class Animator:
         self.fps = fps
         print(f"screen is at {self.screen.get_size()}")
 
-    def animate(self, make_video=False, video_name=None):
+    def animate(self, make_video=False, video_name="NO_NAME"):
         self.screen.fill(RGB_WHITE)
         running = True
         index = 0
@@ -43,19 +43,21 @@ class Animator:
                 self.screen.blit(surf, (0, 0))
                 pygame.display.flip()
                 if make_video:
-                    filename = os.path.join(folder_path, f"frame_{index}.png")
+                    filename = os.path.join(VIDEOS_FOLDER, f"{video_name}_frame_{index}.png")
                     pygame.image.save(self.screen, filename)
                 index += 1
-                clock.tick(self.fps)
+                # clock.tick(self.fps)
+            else:
+                running = False
 
         pygame.quit()
 
         if make_video:
             n_frames = index
-            image_files = [os.path.join(folder_path, f"frame_{frame_number}.png") for frame_number in range(n_frames)]
+            image_files = [os.path.join(VIDEOS_FOLDER, f"{video_name}_frame_{frame_number}.png") for frame_number in range(n_frames)]
 
             # create MP4 video
-            video_name = os.path.join(folder_path, video_name + '.mp4')
+            video_name = os.path.join(VIDEOS_FOLDER, video_name + '.mp4')
             with imageio.get_writer(video_name, mode='I', fps=VIDEO_FPS) as writer:
                 for image_file in image_files:
                     image = imageio.v2.imread(image_file)
