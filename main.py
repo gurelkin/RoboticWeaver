@@ -42,7 +42,7 @@ def write_nails_to_file(nails, path, image_height):
 
 
 def main_anim():
-    image = read_image("images/dbg.jpg")
+    image = read_image("images/hendrix.jpg")
     board = read_image("frames/nails_polygon.jpg")
     intensity = 0.15
     loom = Loom(image, board, intensity=intensity)

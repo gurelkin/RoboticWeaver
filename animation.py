@@ -5,7 +5,7 @@ from names import *
 
 pygame.init()
 clock = pygame.time.Clock()
-folder_path = "C:\\Users\\gursh\\RoboticWeaverProject\\videos"
+folder_path = "./videos/"
 
 
 class Animator:
