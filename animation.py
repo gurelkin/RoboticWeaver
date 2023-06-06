@@ -5,11 +5,11 @@ from names import *
 
 pygame.init()
 clock = pygame.time.Clock()
-# folder_path = "C:\\Users\\gursh\\RoboticWeaverProject\\videos"
+folder_path = "./videos/"
 
 
 class Animator:
-    def __init__(self, weaving, shape, nails, intensity=INTENSITY, fps=ANIMATION_FPS):
+    def __init__(self, weaving, shape, nails, intensity, fps=ANIMATION_FPS):
         """
         a class used to animate weaving using pygame
         :param weaving: a list of weavings (pairs of nails locations)
@@ -25,7 +25,7 @@ class Animator:
         self.fps = fps
         print(f"screen is at {self.screen.get_size()}")
 
-    def animate(self, make_video=False, folder_path=None, video_name=None):
+    def animate(self, make_video=False, video_name=None):
         self.screen.fill(RGB_WHITE)
         running = True
         index = 0
