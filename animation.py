@@ -25,7 +25,7 @@ class Animator:
         self.fps = fps
         print(f"screen is at {self.screen.get_size()}")
 
-    def animate(self, make_video=False, folder_path=None, video_name=None):
+    def animate(self, make_video=False, video_name="NO_NAME"):
         self.screen.fill(RGB_WHITE)
         running = True
         index = 0
@@ -43,7 +43,7 @@ class Animator:
                 self.screen.blit(surf, (0, 0))
                 pygame.display.flip()
                 if make_video:
-                    filename = os.path.join(folder_path, f"frame_{index}.png")
+                    filename = os.path.join(VIDEOS_FOLDER, f"{video_name}_frame_{index}.png")
                     pygame.image.save(self.screen, filename)
                 index += 1
                 # clock.tick(self.fps)
@@ -54,7 +54,7 @@ class Animator:
 
         if make_video:
             n_frames = index
-            image_files = [os.path.join(folder_path, f"frame_{frame_number}.png") for frame_number in range(n_frames)]
+            image_files = [os.path.join(VIDEOS_FOLDER, f"{video_name}_frame_{frame_number}.png") for frame_number in range(n_frames)]
 
             # create MP4 video
             video_name = os.path.join(VIDEOS_FOLDER, video_name + '.mp4')
