@@ -41,32 +41,24 @@ def write_nails_to_file(nails, path, image_height):
             f.write(f"{x} {y}\n")
 
 
-def main_anim():
-    image = read_image("images/dbg.jpg")
-    board = read_image("frames/nails_polygon.jpg")
-    intensity = 0.15
-    loom = Loom(image, board, intensity=intensity)
-    weaving = loom.weave()
-    anim = Animator(weaving, loom.canvas.shape, loom.nails, intensity)
-    anim.animate(make_video=True, video_name="video")
+def main():
 
-
-
-
-
-def main(*args, **kwargs):
-    if len(sys.argv) != 3:
-        print("Usage: main.py <image path> <nail frame path>")
     image_path = sys.argv[1]
-    nails_path = sys.argv[2]
+    board_path = sys.argv[2]
+    folder_path = image_path[:(image_path.rindex('\\'))]
+    make_video = len(sys.argv) > 3 and sys.argv[3] == '-v'
     image = read_image(image_path)
-    board = read_image(nails_path)
+    board = read_image(board_path)
     loom = Loom(image, board)
     nail_sequence = loom.weave()
-    save_image(loom.canvas, image_path + "_result.png")
-    write_nails_to_file(nail_sequence, image_path + "_sequence.ssc", len(image))
-    print("Done.")
+    weaving = loom.canvas
+    # write_nails_to_file(nail_sequence, image_path + "_sequence.ssc", len(image))
+    save_image(loom.canvas, image_path + "_weave.png")
+    if make_video:
+        anim = Animator(weaving, loom.canvas.shape, loom.nails)
+        anim.animate(make_video=True, folder_path=folder_path, video_name="video")
+    write_nails_to_file(nail_sequence, folder_path + "_sequence.ssc", len(image_path))
 
 
 if __name__ == '__main__':
-    main_anim()
+    main()

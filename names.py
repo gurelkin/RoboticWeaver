@@ -14,7 +14,7 @@ BLACK = 0
 RGB_WHITE = (255, 255, 255)  # pygame works with 3 color channels
 
 # Globals
-INTENSITY = 0.1
+INTENSITY = 0.12
 TARGET_BRIGHTNESS = int(0.95 * WHITE)
 OPT_RES = 400
 FONT_SIZE = 6
