@@ -24,17 +24,22 @@ const readFile = (req) => {
 };
 
 const handler = async (req, res) => {
-    try {
-        fs.readdir(path.join(process.cwd() + "/public", "/images"));
-    } catch (error) {
-        fs.mkdir(path.join(process.cwd() + "/public", "/images"), (err) => {
-            if (err) {
-                console.error(err);
-                res.status(500).json({ error: 'Internal server error' });
-            }
-        });
-    }
-    await readFile(req, true);
+    // try {
+    //     fs.readdir(path.join(process.cwd() + "/public", "/images"));
+    // } catch (error) {
+    //     fs.mkdir(path.join(process.cwd() + "/public", "/images"), (err) => {
+    //         if (err) {
+    //             console.error(err);
+    //             res.status(500).json({ error: 'Internal server error' });
+    //         }
+    //     });
+    // }
+    const { fields, files } = await readFile(req, true);
+    const imageFile = files.image;
+    console.log(imageFile);
+    // TODO: make image page and useRouter to get there
+
+
     res.json({ done: "ok" });
 };
 
