@@ -21,3 +21,11 @@ FONT_SIZE = 6
 ANIMATION_FPS = 1_000
 VIDEO_FPS = ANIMATION_FPS / 4
 EXTRA_FRAMES = 400
+
+# Folder paths
+IMAGES_FOLDER = "./images"
+FRAMES_FOLDER = "./frames"
+RESULTS_FOLDER = "./results"
+VIDEOS_FOLDER = "./videos"
+WEBSITE_FOLDER = "./website"
+ROBOT_FOLDER = "./robot"

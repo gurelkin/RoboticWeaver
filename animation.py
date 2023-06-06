@@ -57,7 +57,7 @@ class Animator:
             image_files = [os.path.join(folder_path, f"frame_{frame_number}.png") for frame_number in range(n_frames)]
 
             # create MP4 video
-            video_name = os.path.join(folder_path, video_name + '.mp4')
+            video_name = os.path.join(VIDEOS_FOLDER, video_name + '.mp4')
             with imageio.get_writer(video_name, mode='I', fps=VIDEO_FPS) as writer:
                 for image_file in image_files:
                     image = imageio.v2.imread(image_file)

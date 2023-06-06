@@ -51,23 +51,22 @@ def main():
     save_image(loom.canvas, image_path + "_weave.png")
 
 
-
-def main1():
+def main():
     image_path = sys.argv[1]
     board_path = sys.argv[2]
-    folder_path = image_path[:(image_path.rindex('\\'))]
-    make_video = len(sys.argv) > 3 and sys.argv[3] == '-v'
+    name = sys.argv[3]
+    make_video = len(sys.argv) > 3 and sys.argv[4] == '-v'
     image = read_image(image_path)
     board = read_image(board_path)
     loom = Loom(image, board)
     nails_sequence = loom.weave()
     # write_nails_to_file(nail_sequence, image_path + "_sequence.ssc", len(image))
-    save_image(loom.canvas, image_path + "_weave.png")
+    save_image(loom.canvas, RESULTS_FOLDER + name + "_weave.png")
     if make_video:
         anim = Animator(nails_sequence, loom.canvas.shape, loom.nails)
-        anim.animate(make_video=True, folder_path=folder_path, video_name="video")
-    write_nails_to_file(nails_sequence, folder_path + "_sequence.ssc", len(image_path))
+        anim.animate(make_video=True, video_name=name)
+    write_nails_to_file(nails_sequence, RESULTS_FOLDER + "_sequence.ssc", len(image_path))
 
 
 if __name__ == '__main__':
-    main1()
+    main()
