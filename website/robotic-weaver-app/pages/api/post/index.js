@@ -2,6 +2,7 @@ import formidable from 'formidable';
 import path from "path";
 import fs from "fs";
 
+const { spawn } = require('node:child_process');
 const cloudinary = require('cloudinary').v2;
 
 // Configuration 
@@ -59,11 +60,19 @@ const handler = async (req, res) => {
 
 export default handler;
 
-
-function run_the_weaver(image_path, output_path) {
-    const python = spawn('python', ['./test.py', word]);
-    // collect data from script
+function runWeaver(image_path, output_name) {
+    console.log("starting the weaver...")
+    const nails_path = "../frames/nails_polygon.jpg";
+    const python = spawn('python', ['../main.py', image_path, nails_path, output_name, '-v']);
+    console.log("weaving...")
     python.stdout.on('data', function (data) {
-        console.log(`RECIEVED ${data.toString()}`);
+        console.log("...")
+        // return `../videos/${output_name}.mp4`;
+    });
+    python.stderr.on('data', (data) => {
+        console.error(`stderr: ${data}`);
+    });
+    python.on('close', (code) => {
+        console.log(`child process exited with code ${code}`);
     });
 }
