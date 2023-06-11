@@ -26,6 +26,6 @@ EXTRA_FRAMES = 400
 IMAGES_FOLDER = "./images"
 FRAMES_FOLDER = "./frames"
 RESULTS_FOLDER = "./results"
-VIDEOS_FOLDER = "./videos"
+VIDEOS_FOLDER = r"C:\Users\urizi\Documents\GitHub\RoboticWeaver\videos"
 WEBSITE_FOLDER = "./website"
 ROBOT_FOLDER = "./robot"
