@@ -51,11 +51,11 @@ def main():
     loom = Loom(image, board)
     nails_sequence = loom.weave()
     # write_nails_to_file(nail_sequence, image_path + "_sequence.ssc", len(image))
-    save_image(loom.canvas, RESULTS_FOLDER + name + "_weave.png")
+    save_image(loom.canvas, RESULTS_FOLDER + "/" + name + "_weave.png")
     if make_video:
         anim = Animator(nails_sequence, loom.canvas.shape, loom.nails)
         anim.animate(make_video=True, video_name=name)
-    write_nails_to_file(nails_sequence, RESULTS_FOLDER + "_sequence.ssc", len(image_path))
+    write_nails_to_file(nails_sequence, RESULTS_FOLDER + "/" + name + "_sequence.ssc", len(image_path))
 
 
 if __name__ == '__main__':
