@@ -3,6 +3,7 @@ import Image from 'next/image'
 import styles from './page.module.css'
 import { useState } from 'react';
 import { ClipLoader } from "react-spinners";
+import ReactPlayer from 'react-player'
 
 export default function Home() {
   const [image, setImage] = useState(null);
@@ -41,12 +42,19 @@ export default function Home() {
         <div className={styles.description}>
           <h1>🤖🎨Automatic Weaver🧵🖼️</h1>
           <p>upload a picture file, and i will transform it into a black and white weaving!</p>
+          <p>INSTRUCTIONS:<br />
+            1. upload a face image, make sure the face are in the middle of the picture.<br />
+            2. the process may take up to 1 minute, please do not refresh the page.<br />
+            3. Get a video of your picture being weaved in black and white!
+          </p>
         </div>
         <div>
           {loading && (
             <div className="spinner">
               <ClipLoader color="#123abc" loading={loading} className='spinner' size={100} />
+              <p>please wait - do not refresh the page...</p>
             </div>
+
           )}
         </div>
         <div>
@@ -56,7 +64,7 @@ export default function Home() {
           </form>
         </div>
         <div>
-          {video ? <img src={video} alt="" /> : <></>}
+          {video ? <ReactPlayer url={video} controls={true} /> : <></>}
         </div>
       </div>
     </main>

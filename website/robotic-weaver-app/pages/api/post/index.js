@@ -34,6 +34,24 @@ const readFile = (req) => {
     });
 };
 
+
+function runWeaver(image_path, output_name, callback) {
+    console.log("starting the weaver...")
+    const nails_path = "../../frames/nails_polygon.jpg";
+    const python = spawn('python', ['../../main.py', image_path, nails_path, output_name, '-v']);
+    console.log("weaving...")
+    python.stdout.on('data', function (data) {
+        console.log("...")
+    });
+    python.stderr.on('data', (data) => {
+        console.error(`stderr: ${data}`);
+    });
+    python.on('close', async (code) => {
+        console.log(`child process exited with code ${code}`);
+        await callback();
+    });
+}
+
 const handler = async (req, res) => {
     // try {
     //     fs.readdir(path.join(process.cwd() + "/public", "/images"));
@@ -49,30 +67,24 @@ const handler = async (req, res) => {
     const imageFile = files.image;
     // console.log(imageFile);
 
-    //upload to cloudinary
-    const response = await cloudinary.uploader.upload(imageFile.filepath, {
-        resource_type: 'image',
-        public_id: imageFile.name,
-    });
-    const videoUrl = response.secure_url;
-    res.status(200).json({ "videoUrl": videoUrl });
+    runWeaver(imageFile.filepath, imageFile.originalFilename,
+        async () => {
+            try {
+                const videoPath = `../../videos/${imageFile.originalFilename}.mp4`
+                //upload to cloudinary
+                const response = await cloudinary.uploader.upload(videoPath, {
+                    resource_type: 'video',
+                    public_id: imageFile.name,
+                });
+                const videoUrl = response.secure_url;
+                res.status(200).json({ "videoUrl": videoUrl });
+            } catch (error) {
+                console.log(error)
+                res.status(500).send({ message: "trouble processing video" })
+            }
+
+        })
 };
 
 export default handler;
 
-function runWeaver(image_path, output_name) {
-    console.log("starting the weaver...")
-    const nails_path = "../frames/nails_polygon.jpg";
-    const python = spawn('python', ['../main.py', image_path, nails_path, output_name, '-v']);
-    console.log("weaving...")
-    python.stdout.on('data', function (data) {
-        console.log("...")
-        // return `../videos/${output_name}.mp4`;
-    });
-    python.stderr.on('data', (data) => {
-        console.error(`stderr: ${data}`);
-    });
-    python.on('close', (code) => {
-        console.log(`child process exited with code ${code}`);
-    });
-}
