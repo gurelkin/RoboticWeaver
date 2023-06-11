@@ -51,7 +51,7 @@ export default function Home() {
         <div>
           {loading && (
             <div className="spinner">
-              <ClipLoader color="#123abc" loading={loading} className='spinner' size={100} />
+              <ClipLoader color="#123abc" loading={loading} classNasme='spinner' size={100} />
               <p>please wait - do not refresh the page...</p>
             </div>
 
@@ -67,6 +67,45 @@ export default function Home() {
           {video ? <ReactPlayer url={video} controls={true} /> : <></>}
         </div>
       </div>
+      <style jsx>{` 
+    form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    input[type="file"] {
+      margin-bottom: 10px;
+    }
+
+    .create {
+      background-color: grey;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .create:disabled {
+      background-color: lightgrey;
+      cursor: not-allowed;
+    }
+    /* Component styles */
+  .spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .spinner p {
+    margin-top: 10px;
+    color: grey;
+  }
+  `}</style>
     </main>
   )
 }

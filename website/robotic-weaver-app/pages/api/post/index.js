@@ -77,6 +77,14 @@ const handler = async (req, res) => {
                     public_id: imageFile.name,
                 });
                 const videoUrl = response.secure_url;
+                try {
+                    fs.unlinkSync(videoPath);
+                    console.log("File removed:", videoPath);
+                    fs.unlinkSync(imageFile.filepath);
+                    console.log("File removed:", imageFile.filepath);
+                } catch (err) {
+                    console.error(err);
+                }
                 res.status(200).json({ "videoUrl": videoUrl });
             } catch (error) {
                 console.log(error)
