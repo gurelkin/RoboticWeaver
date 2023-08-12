@@ -3,6 +3,7 @@ import numpy as np
 import skimage
 from matplotlib import pyplot as plt
 from skimage.feature import blob_log
+from skimage import io, color, exposure
 
 from loom import threshold_contrast
 from main import read_image, plot_image
@@ -110,12 +111,26 @@ def main_cap():
                 [n[0] for n in new_nails])
     plt.show()
 
+def main_mask():
+    image_path = "captured.png"
+    image = io.imread(image_path)
+
+    hsv_image = color.rgb2hsv(image)
+
+    lower_green = np.array([0.25, 0.2, 0.2])  # Adjust these values as needed
+    upper_green = np.array([0.4, 1.0, 1.0])
+
+    # preparing the mask to overlay
+    mask = np.logical_and(hsv_image >= lower_green, hsv_image <= upper_green)
+    green_elements = np.logical_and.reduce(mask, axis=2)
+    highlighted_image = image.copy()
+    highlighted_image[green_elements] = [255, 0, 0]  # Red color
+
+    # Display or save the highlighted image
+    plt.imshow(highlighted_image)
+    plt.axis('off')
+    plt.show()
 
 if __name__ == "__main__":
-    board = read_image("Images/captured.png")
-    new_nails = find_nails_locations(board, epsilon=14)
-    plt.imshow(board)
-    plt.scatter([n[1] for n in new_nails],
-                [n[0] for n in new_nails])
-    plt.show()
+    main_mask()
 
