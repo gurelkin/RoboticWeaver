@@ -1,9 +1,10 @@
 from skimage.draw import line
 from skimage.feature import blob_log
 from skimage.transform import rescale
+from skimage.io import imread
 from skimage.util import crop
-import matplotlib.pyplot as plt
-from names import *
+
+from utils import *
 
 
 class Strand(object):
@@ -11,7 +12,7 @@ class Strand(object):
     Represents one possible strand in a loom's image / canvas.
     """
 
-    def __init__(self, nail1: Nail, nail2: Nail):
+    def __init__(self, nail1, nail2):
         nail1, nail2 = (nail1, nail2) if nail2 >= nail1 else (nail2, nail1)
         self.nails = (nail1, nail2)
         self.rows, self.cols = line(*nail1, *nail2)
@@ -20,13 +21,16 @@ class Strand(object):
         return zip(self.rows, self.cols)
 
 
-def adjust_image_size(image: Image, resolution: int) -> Image:
-    height, width = image.shape
+def adjust_image_size(image, resolution: int):
+    height, width = image.shape[0], image.shape[1]
     scale_factor = resolution / height if height < width else resolution / width
-    return rescale(image, scale_factor, preserve_range=True)
+    if len(image.shape) > 2:
+        return np.array(WHITE * rescale(image, scale_factor, channel_axis=2), dtype=int)
+    else:
+        return rescale(image, scale_factor, preserve_range=True)
 
 
-def adjust_image_dimensions(image: Image, board_shape: tuple[int, int]) -> Image:
+def adjust_image_dimensions(image, board_shape: tuple[int, int]):
     """
     Adjusts `image` to fit `board_shape`.
     If the image proportions do not match `board_shape`, the largest middle part of the image will be cropped.
@@ -45,12 +49,23 @@ def adjust_image_dimensions(image: Image, board_shape: tuple[int, int]) -> Image
     return np.array(cropped.tolist(), dtype=int)
 
 
-def choose_nails_locations(shape: tuple, k: int) -> list[Nail]:
+def threshold_contrast(board, threshold, white=255):
+    for i in range(len(board)):
+        for j in range(len(board[i])):
+            pxl = board[i][j]
+            if pxl <= threshold:
+                board[i][j] = 0
+            else:
+                board[i][j] = white
+    return board
+
+
+def choose_nails_locations(shape, n_nails):
     """
     Sets the location of `k` nails on the border of an image with `shape` dimensions.
 
     :param shape: Shape of the image.
-    :param k: Number of nails to be placed.
+    :param n_nails: Number of nails to be placed.
     :return: The indices of the nails' locations on the image.
     """
     rows, cols = shape
@@ -66,27 +81,33 @@ def choose_nails_locations(shape: tuple, k: int) -> list[Nail]:
         border_pixels.append((0, j))
     # Find the gap between each nail and choose the pixels with this gap between them
     perimeter = len(border_pixels)
-    gap = int(np.floor(perimeter / k))
+    gap = int(np.floor(perimeter / n_nails))
     chosen_indices = range(0, perimeter, gap)
     return [border_pixels[i] for i in chosen_indices]
 
 
-def find_nails_locations(board: Image, epsilon=7) -> list[Nail]:
+def find_nails_locations(board, epsilon=7):
     """
     Detects the location of the nails on the board.
 
     :param epsilon: the maximum distance for blobs to be counted as the same nail.
     :param board: A grayscale (0-255) image of the nailed board.
     """
-    normalized_negative = 1-(board/WHITE)
+    normalized_negative = 1 - (board / 255)
+    thresh = 1.5 * np.mean(normalized_negative)
+    normalized_negative = threshold_contrast(normalized_negative, thresh, white=1)
     centers_sigmas = blob_log(normalized_negative)
+
     nails = [(int(c[0]), int(c[1])) for c in centers_sigmas]
     new_nails = []
+    center_board = (board.shape[0] // 2, board.shape[1] // 2)
     for nail in nails:
         good_nail = True
-        for nn in new_nails:
-            if np.math.dist(nail, nn) < epsilon:
+        for i in range(len(new_nails)):
+            if np.math.dist(nail, new_nails[i]) < epsilon:
                 # they are the same nail, probably
+                # if np.math.dist(nail, center_board) > np.math.dist(center_board, new_nails[i]):
+                #     new_nails[i] = nail
                 good_nail = False
                 break
         if good_nail:
@@ -94,7 +115,7 @@ def find_nails_locations(board: Image, epsilon=7) -> list[Nail]:
     return new_nails
 
 
-def get_all_possible_strands(nails_locations: list[Nail]) -> dict[Nail, list[Strand]]:
+def get_all_possible_strands(nails_locations):
     """
     Generates a dict mapping from a nail to a list of all his possible strands.
 
@@ -107,7 +128,7 @@ def get_all_possible_strands(nails_locations: list[Nail]) -> dict[Nail, list[Str
             for nail1 in nails_locations}
 
 
-def find_darkest_strand(image: Image, possible_strands: list[Strand]) -> tuple[Strand, float]:
+def find_darkest_strand(image, possible_strands):
     """
     Finds the strand with the smallest (darkest) mean value in its pixels relative to `image`.
 
@@ -125,21 +146,60 @@ def find_darkest_strand(image: Image, possible_strands: list[Strand]) -> tuple[S
     return possible_strands[min_index], min_mean
 
 
+def coordify(board, nails, bases=BASE_NAILS_XY):
+    # identify the base nails in the board RGB image
+    def green_dist(idx):
+        return np.linalg.norm(board[idx] - RGB_GREEN)
+    base_nail_1, base_nail_2 = nails[:2]
+    base_dist_1, base_dist_2 = green_dist(base_nail_1), green_dist(base_nail_2)
+    for nail in nails[2:]:
+        dist = green_dist(nail)
+        if dist < base_dist_1:
+            base_nail_2 = base_nail_1
+            base_dist_2 = base_dist_1
+            base_nail_1 = nail
+            base_dist_1 = dist
+        elif dist < base_dist_2:
+            base_nail_2 = nail
+            base_dist_2 = dist
+    # define the ij->xy transformation
+    if base_nail_1 > base_nail_2:
+        base_xy_1, base_xy_2 = BASE_NAILS_XY
+    else:
+        base_xy_2, base_xy_1 = BASE_NAILS_XY
+    pixel_x_length = abs(base_xy_1[0] - base_xy_2[0]) / abs(base_nail_1[0] - base_nail_2[0])
+    pixel_y_length = abs(base_xy_1[1] - base_xy_2[1]) / abs(base_nail_1[1] - base_nail_2[1])
+    def ij2xy(i, j):
+        # TODO: abs() not working here, needs to find a way to tell if the x and y values are higher or lower than the base ones
+        xy1 = (pixel_x_length * abs(base_nail_1[0] - i), pixel_y_length * abs(base_nail_1[1] - j))
+        xy2 = (pixel_x_length * abs(base_nail_2[0] - i), pixel_y_length * abs(base_nail_2[1] - j))
+        mean_xy = [round((xy1[0]+xy2[0])/2, 2), round((xy1[1]+xy2[1])/2, 2)]
+        return mean_xy
+    # map each nail to its (x, y) coordinate
+    return {nail: ij2xy(*nail) for nail in nails}
+
+
 class Loom(object):
     """
     Utility for approximating images using strands.
     """
 
-    def __init__(self, image_: Image, board_: Image, intensity=INTENSITY):
-        self.board = adjust_image_size(board_, OPT_RES)
-        self.image = adjust_image_dimensions(image_, self.board.shape)
+    def __init__(self, image_path, board_path, intensity=INTENSITY):
+        image = read_image(image_path, color=False)
+        board = read_image(board_path, color=False)
+        self.board = adjust_image_size(board, OPT_RES)
+        self.image = adjust_image_dimensions(image, self.board.shape)
         self.canvas = WHITE * np.ones(self.board.shape, dtype=int)
         self.nails = find_nails_locations(self.board)
         self.strands = get_all_possible_strands(self.nails)
+        board_rgb = read_image(board_path, color=True)
+        board_rgb = adjust_image_size(board_rgb, OPT_RES)
+        plot_image(board_rgb)
+        self.nail2xy = coordify(board_rgb, self.nails)
         self.intensity = int(np.floor(WHITE * intensity))
         self.initial_mean = np.mean(self.image)
 
-    def weave(self) -> list[Nail]:
+    def weave(self):
         """
         Weaves onto `self.canvas` a strand-approximation of `self.image`.
 
@@ -163,17 +223,6 @@ class Loom(object):
             current_nail = current_strand.nails[1] if current_strand.nails[1] != current_nail else current_strand.nails[0]
         return nails_sequence
 
-    def reset(self, new_image: Image, new_k: int):
-        """
-        Resets the loom with a new image.
-
-        :param new_image: The new image to be woven.
-        :param new_k: Number of nails to be placed.
-        """
-        self.image = new_image.copy()
-        self.canvas = WHITE * np.ones(new_image.shape, dtype=int)
-        self.nails = choose_nails_locations(new_image.shape, new_k)
-        self.strands = get_all_possible_strands(self.nails)
 
     def plot_nail_number(self, location):
         number = -1

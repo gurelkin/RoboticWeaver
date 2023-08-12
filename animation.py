@@ -1,7 +1,7 @@
 import os
 import imageio
 import pygame
-from names import *
+from utils import *
 
 pygame.init()
 # clock = pygame.time.Clock()

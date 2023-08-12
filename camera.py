@@ -1,43 +1,36 @@
 import cv2
-import numpy as np
 import skimage
-from matplotlib import pyplot as plt
+from skimage import io, color
 from skimage.feature import blob_log
-from main import read_image, plot_image
 
-cv2.namedWindow("preview")
-vc = cv2.VideoCapture(1)
-
-if vc.isOpened():  # try to get the first frame
-    rval, frame = vc.read()
-else:
-    rval = False
-captured = frame
-
-while rval:
-    cv2.imshow("preview", frame)
-    cv2.imshow("cap", captured)
-    rval, frame = vc.read()
-    key = cv2.waitKey(20)
-    if key == 27:  # exit on ESC
-        cv2.imwrite("captured.png", captured)
-        break
-    elif key == 32:  # space
-        captured = frame
-
-vc.release()
-cv2.destroyWindow("preview")
+from utils import *
+from loom import threshold_contrast
 
 
-def threshold_contrast(board, threshold):
-    for i in range(len(board)):
-        for j in range(len(board[i])):
-            pxl = board[i][j]
-            if pxl <= threshold:
-                board[i][j] = 0
-            else:
-                board[i][j] = 255
-    return board
+def capture_video():
+    cv2.namedWindow("preview")
+    vc = cv2.VideoCapture(1)
+
+    if vc.isOpened():  # try to get the first frame
+        rval, frame = vc.read()
+    else:
+        rval = False
+    captured = frame
+
+    while rval:
+        cv2.imshow("preview", frame)
+        cv2.imshow("cap", captured)
+        rval, frame = vc.read()
+        frame = cv2.convertScaleAbs(frame, alpha=1.5, beta=10)
+        key = cv2.waitKey(20)
+        if key == 27:  # exit on ESC
+            cv2.imwrite(FRAMES_FOLDER + "captured.png", captured)
+            break
+        elif key == 32:  # space
+            captured = frame
+
+    vc.release()
+    cv2.destroyWindow("preview")
 
 
 def nail_coordinates(nails_list, z_camera, image_shape, focal_length=1):
@@ -56,18 +49,16 @@ def nail_coordinates(nails_list, z_camera, image_shape, focal_length=1):
 
 
 def main_cap():
-    mona = read_image("Images/MonaLisa.jpeg")
-    board = read_image("Images/captured.png")
-    THRESH = 140
+    board = read_image("frames/nails_polygon.jpg")
     negative = 255 - board
-    negative = skimage.filters.gaussian(negative,
-                                        sigma=1,
-                                        preserve_range=True)
-    thresh = 1.6 * np.math.floor(np.mean(negative))
+    thresh = 1.5 * np.math.floor(np.mean(negative))
     negative = threshold_contrast(negative, thresh)
+    negative = skimage.filters.gaussian(negative,
+                                        sigma=0.25,
+                                        preserve_range=True)
     plot_image(negative)
     plt.imshow(board)
-    bl = blob_log(negative / 255)
+    bl = blob_log(negative)
     nails = [(int(c[0]), int(c[1])) for c in bl]
 
     print(nails)
@@ -86,3 +77,26 @@ def main_cap():
     plt.scatter([n[1] for n in new_nails],
                 [n[0] for n in new_nails])
     plt.show()
+
+def main_mask():
+    image_path = "captured.png"
+    image = io.imread(image_path)
+
+    hsv_image = color.rgb2hsv(image)
+
+    lower_green = np.array([0.25, 0.2, 0.2])  # Adjust these values as needed
+    upper_green = np.array([0.4, 1.0, 1.0])
+
+    # preparing the mask to overlay
+    mask = np.logical_and(hsv_image >= lower_green, hsv_image <= upper_green)
+    green_elements = np.logical_and.reduce(mask, axis=2)
+    highlighted_image = image.copy()
+    highlighted_image[green_elements] = [255, 0, 0]  # Red color
+
+    # Display or save the highlighted image
+    plt.imshow(highlighted_image)
+    plt.axis('off')
+    plt.show()
+
+if __name__ == "__main__":
+    main_mask()
