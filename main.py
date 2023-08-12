@@ -45,7 +45,7 @@ def main():
     image_path = sys.argv[1]
     board_path = sys.argv[2]
     name = sys.argv[3]
-    make_video = len(sys.argv) > 3 and sys.argv[4] == '-v'
+    make_video = len(sys.argv) > 4 and sys.argv[4] == '-v'
     image = read_image(image_path)
     board = read_image(board_path)
     loom = Loom(image, board)

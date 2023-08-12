@@ -44,6 +44,15 @@ def adjust_image_dimensions(image: Image, board_shape: tuple[int, int]) -> Image
     cropped = crop(rescaled_image, ((height_crop, height_crop), (width_crop, width_crop)))
     return np.array(cropped.tolist(), dtype=int)
 
+def threshold_contrast(board, threshold, white=255):
+    for i in range(len(board)):
+        for j in range(len(board[i])):
+            pxl = board[i][j]
+            if pxl <= threshold:
+                board[i][j] = 0
+            else:
+                board[i][j] = white
+    return board
 
 def choose_nails_locations(shape: tuple, k: int) -> list[Nail]:
     """
@@ -78,21 +87,26 @@ def find_nails_locations(board: Image, epsilon=7) -> list[Nail]:
     :param epsilon: the maximum distance for blobs to be counted as the same nail.
     :param board: A grayscale (0-255) image of the nailed board.
     """
-    normalized_negative = 1-(board/WHITE)
+    normalized_negative = 1 - (board / 255)
+    thresh = 1.5 * np.mean(normalized_negative)
+    normalized_negative = threshold_contrast(normalized_negative, thresh, white=1)
     centers_sigmas = blob_log(normalized_negative)
+
     nails = [(int(c[0]), int(c[1])) for c in centers_sigmas]
     new_nails = []
+    center_board = (board.shape[0] // 2, board.shape[1] // 2)
     for nail in nails:
         good_nail = True
-        for nn in new_nails:
-            if np.math.dist(nail, nn) < epsilon:
+        for i in range(len(new_nails)):
+            if np.math.dist(nail, new_nails[i]) < epsilon:
                 # they are the same nail, probably
+                # if np.math.dist(nail, center_board) > np.math.dist(center_board, new_nails[i]):
+                #     new_nails[i] = nail
                 good_nail = False
                 break
         if good_nail:
             new_nails.append(nail)
     return new_nails
-
 
 def get_all_possible_strands(nails_locations: list[Nail]) -> dict[Nail, list[Strand]]:
     """

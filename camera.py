@@ -3,7 +3,10 @@ import numpy as np
 import skimage
 from matplotlib import pyplot as plt
 from skimage.feature import blob_log
+
+from loom import threshold_contrast
 from main import read_image, plot_image
+from names import Image, Nail
 
 
 def capture_video():
@@ -32,16 +35,6 @@ def capture_video():
     cv2.destroyWindow("preview")
 
 
-def threshold_contrast(board, threshold):
-    for i in range(len(board)):
-        for j in range(len(board[i])):
-            pxl = board[i][j]
-            if pxl <= threshold:
-                board[i][j] = 0
-            else:
-                board[i][j] = 255
-    return board
-
 
 def nail_coordinates(nails_list, z_camera, image_shape, focal_length=1):
     image_center_x, image_center_y = image_shape[:2] / 2
@@ -58,8 +51,37 @@ def nail_coordinates(nails_list, z_camera, image_shape, focal_length=1):
     return coordinates
 
 
+def find_nails_locations(board: Image, epsilon=7) -> list[Nail]:
+    """
+    Detects the location of the nails on the board.
+
+    :param epsilon: the maximum distance for blobs to be counted as the same nail.
+    :param board: A grayscale (0-255) image of the nailed board.
+    """
+    normalized_negative = 1 - (board / 255)
+    thresh = 1.5 * np.mean(normalized_negative)
+    normalized_negative = threshold_contrast(normalized_negative, thresh, white=1)
+    centers_sigmas = blob_log(normalized_negative)
+
+    nails = [(int(c[0]), int(c[1])) for c in centers_sigmas]
+    new_nails = []
+    center_board = (board.shape[0] // 2, board.shape[1] // 2)
+    for nail in nails:
+        good_nail = True
+        for i in range(len(new_nails)):
+            if np.math.dist(nail, new_nails[i]) < epsilon:
+                # they are the same nail, probably
+                # if np.math.dist(nail, center_board) > np.math.dist(center_board, new_nails[i]):
+                #     new_nails[i] = nail
+                good_nail = False
+                break
+        if good_nail:
+            new_nails.append(nail)
+    return new_nails
+
+
 def main_cap():
-    board = read_image("Images/captured.png")
+    board = read_image("frames/nails_polygon.jpg")
     negative = 255 - board
     thresh = 1.5 * np.math.floor(np.mean(negative))
     negative = threshold_contrast(negative, thresh)
@@ -68,12 +90,12 @@ def main_cap():
                                         preserve_range=True)
     plot_image(negative)
     plt.imshow(board)
-    bl = blob_log(negative / 255)
+    bl = blob_log(negative)
     nails = [(int(c[0]), int(c[1])) for c in bl]
 
     print(nails)
     new_nails = []
-    epsilon = 13
+    epsilon = 7
     for nail in nails:
         good_nail = True
         for nn in new_nails:
@@ -90,4 +112,10 @@ def main_cap():
 
 
 if __name__ == "__main__":
-    main_cap()
+    board = read_image("Images/captured.png")
+    new_nails = find_nails_locations(board, epsilon=14)
+    plt.imshow(board)
+    plt.scatter([n[1] for n in new_nails],
+                [n[0] for n in new_nails])
+    plt.show()
+
