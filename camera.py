@@ -5,28 +5,31 @@ from matplotlib import pyplot as plt
 from skimage.feature import blob_log
 from main import read_image, plot_image
 
-cv2.namedWindow("preview")
-vc = cv2.VideoCapture(1)
 
-if vc.isOpened():  # try to get the first frame
-    rval, frame = vc.read()
-else:
-    rval = False
-captured = frame
+def capture_video():
+    cv2.namedWindow("preview")
+    vc = cv2.VideoCapture(1)
 
-while rval:
-    cv2.imshow("preview", frame)
-    cv2.imshow("cap", captured)
-    rval, frame = vc.read()
-    key = cv2.waitKey(20)
-    if key == 27:  # exit on ESC
-        cv2.imwrite("captured.png", captured)
-        break
-    elif key == 32:  # space
-        captured = frame
+    if vc.isOpened():  # try to get the first frame
+        rval, frame = vc.read()
+    else:
+        rval = False
+    captured = frame
 
-vc.release()
-cv2.destroyWindow("preview")
+    while rval:
+        cv2.imshow("preview", frame)
+        cv2.imshow("cap", captured)
+        rval, frame = vc.read()
+        frame = cv2.convertScaleAbs(frame, alpha=1.5, beta=10)
+        key = cv2.waitKey(20)
+        if key == 27:  # exit on ESC
+            cv2.imwrite("captured.png", captured)
+            break
+        elif key == 32:  # space
+            captured = frame
+
+    vc.release()
+    cv2.destroyWindow("preview")
 
 
 def threshold_contrast(board, threshold):
@@ -56,15 +59,13 @@ def nail_coordinates(nails_list, z_camera, image_shape, focal_length=1):
 
 
 def main_cap():
-    mona = read_image("Images/MonaLisa.jpeg")
     board = read_image("Images/captured.png")
-    THRESH = 140
     negative = 255 - board
-    negative = skimage.filters.gaussian(negative,
-                                        sigma=1,
-                                        preserve_range=True)
-    thresh = 1.6 * np.math.floor(np.mean(negative))
+    thresh = 1.5 * np.math.floor(np.mean(negative))
     negative = threshold_contrast(negative, thresh)
+    negative = skimage.filters.gaussian(negative,
+                                        sigma=0.25,
+                                        preserve_range=True)
     plot_image(negative)
     plt.imshow(board)
     bl = blob_log(negative / 255)
@@ -72,7 +73,7 @@ def main_cap():
 
     print(nails)
     new_nails = []
-    epsilon = 7
+    epsilon = 13
     for nail in nails:
         good_nail = True
         for nn in new_nails:
@@ -86,3 +87,7 @@ def main_cap():
     plt.scatter([n[1] for n in new_nails],
                 [n[0] for n in new_nails])
     plt.show()
+
+
+if __name__ == "__main__":
+    main_cap()
