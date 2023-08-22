@@ -132,5 +132,5 @@ def main_mask():
     plt.show()
 
 if __name__ == "__main__":
-    main_mask()
+    capture_video()
 
