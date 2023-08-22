@@ -1,4 +1,5 @@
 import numpy as np
+import cv2
 import matplotlib.pyplot as plt
 from skimage.io import imread
 
@@ -46,7 +47,8 @@ def read_image(path: str, color: bool) -> np.array:
     :return: A grayscale variant of the image as a 2d numpy array
     """
     if color:
-        return np.array(imread(path))
+        bgr = cv2.imread(path, cv2.IMREAD_COLOR)
+        return cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB).astype(np.uint8)
     else:
         return np.array(WHITE * imread(path, as_gray=True, plugin='matplotlib'), dtype=int)
 

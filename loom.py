@@ -27,7 +27,7 @@ def adjust_image_size(image, resolution: int):
     height, width = image.shape[0], image.shape[1]
     scale_factor = resolution / height if height < width else resolution / width
     if len(image.shape) > 2:
-        return np.array(WHITE * rescale(image, scale_factor, channel_axis=2), dtype=int)
+        return np.array(WHITE * rescale(image, scale_factor, channel_axis=2), dtype=np.uint8)
     else:
         return rescale(image, scale_factor, preserve_range=True)
 
@@ -95,9 +95,15 @@ def find_nails_locations(board, epsilon=7):
     :param epsilon: the maximum distance for blobs to be counted as the same nail.
     :param board: A grayscale (0-255) image of the nailed board.
     """
+    # masking out everything outside the board
+    
+    # preprocessing
     normalized_negative = 1 - (board / 255)
     thresh = 1.5 * np.mean(normalized_negative)
     normalized_negative = threshold_contrast(normalized_negative, thresh, white=1)
+
+
+    # find the nails in the image
     centers_sigmas = blob_log(normalized_negative)
 
     nails = [(int(c[0]), int(c[1])) for c in centers_sigmas]
@@ -219,7 +225,7 @@ class Loom(object):
         self.intensity = int(np.floor(WHITE * intensity))
         self.initial_mean = np.mean(self.image)
 
-    def weave(self):
+    def weave(self, coordinates=False):
         """
         Weaves onto `self.canvas` a strand-approximation of `self.image`.
 
@@ -241,6 +247,8 @@ class Loom(object):
             # Add the used nail to the nails sequence
             nails_sequence.append(current_nail)
             current_nail = current_strand.nails[1] if current_strand.nails[1] != current_nail else current_strand.nails[0]
+        if coordinates:
+            return [self.nail2xy(n) for n in nails_sequence]
         return nails_sequence
 
 
