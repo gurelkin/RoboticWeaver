@@ -2,7 +2,7 @@ import sys
 
 from utils import *
 from animation import Animator
-from loom import Loom
+from loom import Loom, coordify2
 
 
 # def write_nails_to_file(nails, path, image_height):
@@ -34,5 +34,10 @@ def main():
     write_coordinates_to_file(coordinates, RESULTS_FOLDER + "/" + name + "_sequence.xy")
 
 
+def coord_main():
+    board = read_image("captured.png", color=True)
+    coordify2(board)
+
+
 if __name__ == '__main__':
-    main()
+    coord_main()

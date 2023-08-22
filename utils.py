@@ -8,6 +8,14 @@ GREY = 127
 BLACK = 0
 RGB_WHITE = (255, 255, 255)  # pygame works with 3 color channels
 RGB_GREEN = (0, 255, 0)
+lower_red_1 = np.array([0, 100, 100])
+upper_red_1 = np.array([10, 255, 255])
+lower_red_2 = np.array([160, 100, 100])
+upper_red_2 = np.array([180, 255, 255])
+ANCHORS = [[335, 642.5],
+           [-186.65, 630.64],
+           [339, -5.82],
+           [-179.06, -17.17]]
 
 # Global variables
 INTENSITY = 0.15

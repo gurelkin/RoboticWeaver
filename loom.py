@@ -1,3 +1,5 @@
+import cv2
+import numpy as np
 from skimage.draw import line
 from skimage.feature import blob_log
 from skimage.transform import rescale
@@ -146,7 +148,7 @@ def find_darkest_strand(image, possible_strands):
     return possible_strands[min_index], min_mean
 
 
-def coordify(board, nails, bases=BASE_NAILS_XY):
+def coordify__(board, nails, bases=BASE_NAILS_XY):
     # identify the base nails in the board RGB image
     def green_dist(idx):
         return np.linalg.norm(board[idx] - RGB_GREEN)
@@ -179,6 +181,24 @@ def coordify(board, nails, bases=BASE_NAILS_XY):
     return {nail: ij2xy(*nail) for nail in nails}
 
 
+def coordify(board, anchors_xy=ANCHORS):
+    # detect red anchors in the board image
+    hsv = cv2.cvtColor(board, cv2.COLOR_RGB2HSV)
+    mask1 = cv2.inRange(hsv, lower_red_1, upper_red_1)
+    mask2 = cv2.inRange(hsv, lower_red_2, upper_red_2)
+    mask = cv2.bitwise_or(mask1, mask2)
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    sorted_contours = sorted(contours, key=cv2.contourArea, reverse=True)[:4]
+    anchors = [np.mean(contour, axis=0, dtype=int)[0] for contour in sorted_contours]
+    # match every i-j anchor to its x-y coordinate
+    anchors_ij = sorted(anchors, key=(lambda n: sum(n)))
+    # create a homography between pixels and coordinates
+    src_pts = np.array(anchors_ij[:3], dtype=np.float32)
+    dst_pts = np.array(anchors_xy[:3], dtype=np.float32)
+    matrix = cv2.getAffineTransform(src_pts, dst_pts)
+    return lambda ij: matrix @ np.array([ij[0], ij[1], 1])
+
+
 class Loom(object):
     """
     Utility for approximating images using strands.
@@ -195,7 +215,7 @@ class Loom(object):
         board_rgb = read_image(board_path, color=True)
         board_rgb = adjust_image_size(board_rgb, OPT_RES)
         plot_image(board_rgb)
-        self.nail2xy = coordify(board_rgb, self.nails)
+        self.nail2xy = coordify(board_rgb)
         self.intensity = int(np.floor(WHITE * intensity))
         self.initial_mean = np.mean(self.image)
 
