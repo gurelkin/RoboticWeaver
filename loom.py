@@ -96,12 +96,13 @@ def find_nails_locations(board, epsilon=7):
     :param board: A grayscale (0-255) image of the nailed board.
     """
     # masking out everything outside the board
-    
+    mask = background_mask(board)
+    board = np.where(mask, board, WHITE)
+
     # preprocessing
-    normalized_negative = 1 - (board / 255)
+    normalized_negative = 1 - (board / WHITE)
     thresh = 1.5 * np.mean(normalized_negative)
     normalized_negative = threshold_contrast(normalized_negative, thresh, white=1)
-
 
     # find the nails in the image
     centers_sigmas = blob_log(normalized_negative)
@@ -109,6 +110,7 @@ def find_nails_locations(board, epsilon=7):
     nails = [(int(c[0]), int(c[1])) for c in centers_sigmas]
     new_nails = []
     center_board = (board.shape[0] // 2, board.shape[1] // 2)
+    nails = filter(lambda n: mask[n], nails)
     for nail in nails:
         good_nail = True
         for i in range(len(new_nails)):
@@ -154,39 +156,6 @@ def find_darkest_strand(image, possible_strands):
     return possible_strands[min_index], min_mean
 
 
-def coordify__(board, nails, bases=BASE_NAILS_XY):
-    # identify the base nails in the board RGB image
-    def green_dist(idx):
-        return np.linalg.norm(board[idx] - RGB_GREEN)
-    base_nail_1, base_nail_2 = nails[:2]
-    base_dist_1, base_dist_2 = green_dist(base_nail_1), green_dist(base_nail_2)
-    for nail in nails[2:]:
-        dist = green_dist(nail)
-        if dist < base_dist_1:
-            base_nail_2 = base_nail_1
-            base_dist_2 = base_dist_1
-            base_nail_1 = nail
-            base_dist_1 = dist
-        elif dist < base_dist_2:
-            base_nail_2 = nail
-            base_dist_2 = dist
-    # define the ij->xy transformation
-    if base_nail_1 > base_nail_2:
-        base_xy_1, base_xy_2 = BASE_NAILS_XY
-    else:
-        base_xy_2, base_xy_1 = BASE_NAILS_XY
-    pixel_x_length = abs(base_xy_1[0] - base_xy_2[0]) / abs(base_nail_1[0] - base_nail_2[0])
-    pixel_y_length = abs(base_xy_1[1] - base_xy_2[1]) / abs(base_nail_1[1] - base_nail_2[1])
-    def ij2xy(i, j):
-        # TODO: abs() not working here, needs to find a way to tell if the x and y values are higher or lower than the base ones
-        xy1 = (pixel_x_length * abs(base_nail_1[0] - i), pixel_y_length * abs(base_nail_1[1] - j))
-        xy2 = (pixel_x_length * abs(base_nail_2[0] - i), pixel_y_length * abs(base_nail_2[1] - j))
-        mean_xy = [round((xy1[0]+xy2[0])/2, 2), round((xy1[1]+xy2[1])/2, 2)]
-        return mean_xy
-    # map each nail to its (x, y) coordinate
-    return {nail: ij2xy(*nail) for nail in nails}
-
-
 def coordify(board, anchors_xy=ANCHORS):
     # detect red anchors in the board image
     hsv = cv2.cvtColor(board, cv2.COLOR_RGB2HSV)
@@ -203,6 +172,15 @@ def coordify(board, anchors_xy=ANCHORS):
     dst_pts = np.array(anchors_xy[:3], dtype=np.float32)
     matrix = cv2.getAffineTransform(src_pts, dst_pts)
     return lambda ij: matrix @ np.array([ij[0], ij[1], 1])
+
+
+def background_mask(board):
+    thresh = cv2.threshold(board, 80, 255, cv2.THRESH_BINARY)[1]
+    contours = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[0]
+    sorted_contours = sorted(contours, key=cv2.contourArea, reverse=True)
+    cv2.drawContours(thresh, sorted_contours, 0, (255, 255, 255), cv2.FILLED)
+    mask = np.where(thresh > 127, True, False)
+    return mask
 
 
 class Loom(object):
@@ -246,11 +224,11 @@ class Loom(object):
             counter += 1
             # Add the used nail to the nails sequence
             nails_sequence.append(current_nail)
-            current_nail = current_strand.nails[1] if current_strand.nails[1] != current_nail else current_strand.nails[0]
+            current_nail = current_strand.nails[1] if current_strand.nails[1] != current_nail else current_strand.nails[
+                0]
         if coordinates:
             return [self.nail2xy(n) for n in nails_sequence]
         return nails_sequence
-
 
     def plot_nail_number(self, location):
         number = -1
@@ -264,7 +242,7 @@ class Loom(object):
     def plot_nail_location(self, number):
         location = (-1, -1)
         for num, nail in enumerate(self.nails):
-            if num+1 == number:
+            if num + 1 == number:
                 location = nail
         plt.text(location[1], location[0], str(number + 1), fontsize=FONT_SIZE, color='red')
         plt.imshow(self.board, cmap='gray')
@@ -272,6 +250,6 @@ class Loom(object):
 
     def plot_all_nail_numbers(self):
         for number, nail in enumerate(self.nails):
-            plt.text(nail[1], nail[0], str(number+1), fontsize=FONT_SIZE, color='red')
+            plt.text(nail[1], nail[0], str(number + 1), fontsize=FONT_SIZE, color='red')
         plt.imshow(self.board, cmap='gray')
         plt.show()

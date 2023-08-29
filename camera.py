@@ -50,7 +50,6 @@ def capture_video():
     cv2.destroyWindow("preview")
 
 
-
 def nail_coordinates(nails_list, z_camera, image_shape, focal_length=1):
     image_center_x, image_center_y = image_shape[:2] / 2
 
@@ -125,6 +124,7 @@ def main_cap():
                 [n[0] for n in new_nails])
     plt.show()
 
+
 def main_mask():
     image_path = "captured.png"
     image = io.imread(image_path)
@@ -144,6 +144,7 @@ def main_mask():
     plt.imshow(highlighted_image)
     plt.axis('off')
     plt.show()
+
 
 if __name__ == "__main__":
     main_mask()
