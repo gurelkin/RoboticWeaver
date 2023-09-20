@@ -10,7 +10,7 @@ from skimage import io, color, exposure
 
 from loom import threshold_contrast
 from main import read_image, plot_image
-from names import Image, Nail
+# from names import Image, Nail
 
 
 def capture_video():
@@ -126,7 +126,7 @@ def main_cap():
 
 
 def main_mask():
-    image_path = "captured.png"
+    image_path = "Images/captured.png"
     image = io.imread(image_path)
 
     hsv_image = color.rgb2hsv(image)

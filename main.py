@@ -1,5 +1,7 @@
 import sys
 
+import matplotlib.pyplot as plt
+
 from utils import *
 from animation import Animator
 from loom import Loom
@@ -21,11 +23,10 @@ def main():
     image_path = sys.argv[1]
     board_path = sys.argv[2]
     name = sys.argv[3]
-    make_video = False #len(sys.argv) > 3 and sys.argv[4] == '-v'
+    make_video = True #len(sys.argv) > 3 and sys.argv[4] == '-v'
     loom = Loom(image_path, board_path)
     nails_sequence = loom.weave()
-    coordinates = [loom.nail2xy[n] for n in nails_sequence]
-    # write_nails_to_file(nail_sequence, image_path + "_sequence.ssc", len(image))
+    coordinates = [loom.nail2xy(n) for n in nails_sequence]
     save_image(loom.canvas, RESULTS_FOLDER + "/" + name + "_weave.png")
     if make_video:
         anim = Animator(nails_sequence, loom.canvas.shape, loom.nails)
@@ -35,11 +36,15 @@ def main():
 
 
 def coord_main():
-    image_path = IMAGES_FOLDER + "/dbg.jpg"
-    board_path = "captured.png"
+    image_path = IMAGES_FOLDER + "/mona_big.jpg"
+    board_path = "Images/captured.png"
     loom = Loom(image_path, board_path)
-    print(loom.weave(coordinates=True))
+    plt.imshow(loom.board)
+    plt.scatter([n[1] for n in loom.nails],
+                [n[0] for n in loom.nails])
+    plt.show()
+    # print(loom.weave(coordinates=True))
 
 
 if __name__ == '__main__':
-    coord_main()
+    main()

@@ -50,7 +50,7 @@ def read_image(path: str, color: bool) -> np.array:
         bgr = cv2.imread(path, cv2.IMREAD_COLOR)
         return cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB).astype(np.uint8)
     else:
-        return np.array(WHITE * imread(path, as_gray=True, plugin='matplotlib'), dtype=int)
+        return np.array(WHITE * imread(path, as_gray=True, plugin='matplotlib'), dtype=np.uint8)
 
 
 def plot_image(image):

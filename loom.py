@@ -97,7 +97,16 @@ def find_nails_locations(board, epsilon=7):
     """
     # masking out everything outside the board
     mask = background_mask(board)
-    board = np.where(mask, board, WHITE)
+    mask = shrink_mask(mask, 16)
+    mean = 0
+    count = 0
+    for i in range(len(mask)):
+        for j in range(len(mask[i])):
+            if mask[i][j]:
+                mean += board[i][j]
+                count += 1
+    mean = mean / count
+    board = np.where(mask, board, mean)
 
     # preprocessing
     normalized_negative = 1 - (board / WHITE)
@@ -171,17 +180,32 @@ def coordify(board, anchors_xy=ANCHORS):
     src_pts = np.array(anchors_ij[:3], dtype=np.float32)
     dst_pts = np.array(anchors_xy[:3], dtype=np.float32)
     matrix = cv2.getAffineTransform(src_pts, dst_pts)
-    return lambda ij: matrix @ np.array([ij[0], ij[1], 1])
+    return lambda ij: matrix @ np.array([ij[1], ij[0], 1])
 
 
 def background_mask(board):
     thresh = cv2.threshold(board, 80, 255, cv2.THRESH_BINARY)[1]
+    thresh = thresh.astype(np.uint8)
     contours = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[0]
     sorted_contours = sorted(contours, key=cv2.contourArea, reverse=True)
     cv2.drawContours(thresh, sorted_contours, 0, (255, 255, 255), cv2.FILLED)
     mask = np.where(thresh > 127, True, False)
     return mask
 
+
+def shrink_mask(mask, n_iter):
+    origin = mask
+    def has_black_neighbor(i, j, mat):
+        return not (np.all(mat[i-1:i+2, j-1:j+2]))
+
+    for iter in range(n_iter):
+        copy = origin.copy()
+        for i in range(len(origin)):
+            for j in range(len(origin[i])):
+                if origin[i, j] and has_black_neighbor(i, j, origin):
+                    copy[i, j] = False
+        origin = copy
+    return origin
 
 class Loom(object):
     """
