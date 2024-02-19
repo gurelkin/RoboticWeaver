@@ -166,6 +166,12 @@ def find_darkest_strand(image, possible_strands):
 
 
 def coordify(board, anchors_xy=ANCHORS):
+    """
+    returns a function for converting image points to world xy points
+    :param board: a color image of the board
+    :param anchors_xy: the world coordinates of
+    :return: lambda(ij) -> xy coordinates
+    """
     # detect red anchors in the board image
     hsv = cv2.cvtColor(board, cv2.COLOR_RGB2HSV)
     mask1 = cv2.inRange(hsv, lower_red_1, upper_red_1)
@@ -220,6 +226,7 @@ class Loom(object):
         self.canvas = WHITE * np.ones(self.board.shape, dtype=int)
         self.nails = find_nails_locations(self.board)
         self.strands = get_all_possible_strands(self.nails)
+        # make a conversion function to world coordinates using the red nails
         board_rgb = read_image(board_path, color=True)
         board_rgb = adjust_image_size(board_rgb, OPT_RES)
         plot_image(board_rgb)
